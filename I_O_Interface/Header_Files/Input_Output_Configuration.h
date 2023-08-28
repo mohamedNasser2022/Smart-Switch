@@ -1,0 +1,42 @@
+/*
+ * Input_Output_Configuration.h
+ *
+ *  Created on: May 20, 2023
+ *      Author: Mohamed Nasser
+ */
+
+#include"DIO_Interface.h"
+
+#ifndef INPUT_OUTPUT_CONFIGURATION_H_
+#define INPUT_OUTPUT_CONFIGURATION_H_
+
+#define I_O_INPUT_FLOAT 	INPUT_FLOATING
+#define I_O_INPUT_PULL_UP 	PULL_UP
+#define I_O_INPUT_PULL_DOWN PULL_DOWN
+#define I_O_OUPUT  			OUTPUT_SPEED_2MHZ_PP
+#define I_O_HIGH			GPIO_HIGH
+#define I_O_LOW				GPIO_LOW
+
+
+
+#define VIRTUAL_PIN_TO_PHY_PIN_0 	0
+#define VIRTUAL_PIN_TO_PHY_PIN_1 	1
+#define VIRTUAL_PIN_TO_PHY_PIN_2 	2
+#define VIRTUAL_PIN_TO_PHY_PIN_3 	3
+#define VIRTUAL_PIN_TO_PHY_PIN_4 	4
+#define VIRTUAL_PIN_TO_PHY_PIN_5 	5
+#define VIRTUAL_PIN_TO_PHY_PIN_6 	6
+#define VIRTUAL_PIN_TO_PHY_PIN_7 	7
+#define VIRTUAL_PIN_TO_PHY_PIN_8 	8
+#define VIRTUAL_PIN_TO_PHY_PIN_9 	9
+#define VIRTUAL_PIN_TO_PHY_PIN_10 	10
+#define VIRTUAL_PIN_TO_PHY_PIN_11 	11
+#define VIRTUAL_PIN_TO_PHY_PIN_12 	12
+#define VIRTUAL_PIN_TO_PHY_PIN_13 	13
+
+
+
+#define MAX_NUMBER_OF_DIO_ON_BOARD		  5
+#define MAX_NUMBER_OF_DIO_EXPANDER_BOARD  13
+
+#endif
