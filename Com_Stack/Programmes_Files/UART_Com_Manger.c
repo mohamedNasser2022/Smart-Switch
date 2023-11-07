@@ -397,7 +397,7 @@ static void UART_Check_Logic(u8 Current_Data_Recived)
 		}
 		else
 		{
-
+			BUS_Mode_Flag = IDEAL_MODE;
 		}
 		break;
 	case RECEVIE_MODE:

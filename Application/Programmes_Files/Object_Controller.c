@@ -11,14 +11,26 @@
 #include"Data_Structure.h"
 #include"DIO_config.h"
 #include"RTE.h"
+#include"Rte_Nvm_STD.h"
+#include"Rte_Message_STD.h"
+
 #include"object_Controller.h"
 
 volatile u32 Object_SW_Time_In_ms;
 
 Object_Data_Manger_t Object_Data_Manger;
 
-Relay_t  Relays[NUMBER_RELAYS_ON_THIS_ECU];
-Switch_t Switches[NUMBER_SWITCHS_ON_THIS_ECU];
+volatile Relay_t  Relays[NUMBER_OF_RELAYS_INTERNAL_ON_CHIP];
+volatile Switch_t Switches[NUMBER_OF_RELAYS_INTERNAL_ON_CHIP];
+
+/*-------------------------------------------------------------------*/
+
+static volatile Idt_Rec003_FD02 Local_Relays_Status;
+static volatile Idt_Rec003_FD02 Local_Switches_Status;
+static u8 Struct_Status_Write_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 copy_Level);
+static u8 Struct_Status_Get_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 *Pointer_Value);
+/*-------------------------------------------------------------------*/
+
 
 
 
@@ -28,37 +40,14 @@ static volatile u8 System_Mode;
 void Object_Init(void)
 {
 	Object_Data_Manger.Object_App_Status = OBJECT_INTIOLIZATION_MODE;
-	u8 Local_Return = NOT_DEFINE;
+	u8 Local_Return = SUCCESS;
 
-	if(Relay_Initilaizations(OBJECT_NO_1_ID_IN_LOCAL_ECU,OBJECT_NO_1_COMUNICATION_WIFI_ID,OBJECT_NO_1_RELAY,OBJECT_NO_1_SWITCH,OBJECT_NO_1_TIME) == SUCCESS && Local_Return != ERROR)
-	{
-		Local_Return = SUCCESS;
-	}
-	else
-	{
-		Local_Return = ERROR;
-	}
-	if(Relay_Initilaizations(OBJECT_NO_2_ID_IN_LOCAL_ECU,OBJECT_NO_2_COMUNICATION_WIFI_ID,OBJECT_NO_2_RELAY,OBJECT_NO_2_SWITCH,OBJECT_NO_2_TIME) == SUCCESS && Local_Return != ERROR)
-	{
-		Local_Return = SUCCESS;
-	}
-	else
-	{
-		Local_Return = ERROR;
-	}
 
-	if(Relay_Initilaizations(OBJECT_NO_3_ID_IN_LOCAL_ECU,OBJECT_NO_3_COMUNICATION_WIFI_ID,OBJECT_NO_3_RELAY,OBJECT_NO_3_SWITCH,OBJECT_NO_3_TIME) == SUCCESS && Local_Return != ERROR)
-	{
-		Local_Return = SUCCESS;
-	}
-	else
-	{
-		Local_Return = ERROR;
-	}
+	Local_Return = Object_Relays_Switches_Initialization();
 
 	if(Local_Return == SUCCESS)
 	{
-		Object_Data_Manger.Object_App_Status = OBJECT_RUNNING_NORMAL;
+		Object_Data_Manger.Object_App_Status = Nvm_Read_Mode;
 	}
 	else
 	{
@@ -69,47 +58,52 @@ void Object_Init(void)
 
 void Object_Polling(void)
 {
-	if(WIFI_Sequenc_Status == SYSTEM_ENABLE_SEQUENCE)
-	{
-		Object_Init_Objects_In_WIFI();
-	}
-	if(Object_Data_Manger.Object_App_Status == OBJECT_RUNNING_NORMAL)
-	{
 
-	}
-
-	Object_Fetch_Message_From_Rte();
-	Object_Fetch_Shared_Varaibles();
 
 }
 
 void Object_Periodic(void)
 {
 	Object_SW_Time_In_ms++;
-	static volatile u16 should_be_Deleted = 400;
+	static  u16 should_be_Deleted = 400;
+	switch (Object_Data_Manger.Object_App_Status)
+	{
+	case OBJECT_RUNNING_NORMAL  :
 
-			if(Object_SW_Time_In_ms % should_be_Deleted == 0)  //50
-			{
-				if(System_Mode == WIFI_MODE)
-				{
+		if(Object_SW_Time_In_ms % 10 == 0)  //50
+		{
 
-						Object_Status_Message_Send_Each_10ms();
+			Runnable_Object_Update_Relays_And_Switch_Status_10ms();
 
-				}
-				else
-				{
+			Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms();
+		}
+		if(Object_SW_Time_In_ms % 5 == 0)
+		{
+			Runnable_Object_Message_0x10_5ms();
+		}
+		if(Object_SW_Time_In_ms % 60000 == 0)
+		{
+			Runnable_Object_Auto_Off_1min();
+		}
 
-				}
 
-			}
+		break;
+	case Nvm_Read_Mode :
 
+		Runnable_Load_Nvm_Data();
+		break;;
+	default:
+		break;
+	}
+
+	Runnable_Object_Init_Objects_In_WIFI_1ms();
 }
 
-static u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u8 switch_Pin,u32 Time_to_Be_off_In_Seconds)
+u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u8 switch_Pin,u32 Time_to_Be_off_In_Seconds)
 {
 	u8 Local_Return = NOT_DEFINE;
 
-	if(Object_Data_Manger.Relay_Counter <= NUMBER_RELAYS_ON_THIS_ECU && Object_Data_Manger.Switch_Counter <= NUMBER_SWITCHS_ON_THIS_ECU)
+	if(Object_Data_Manger.Relay_Counter <= NUMBER_OF_RELAYS_INTERNAL_ON_CHIP && Object_Data_Manger.Switch_Counter <= NUMBER_OF_RELAYS_INTERNAL_ON_CHIP)
 	{
 		Relays[Object_Data_Manger.Relay_Counter].Object_WIFI_ID = Com_WIFI_ID;
 
@@ -123,9 +117,9 @@ static u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Rela
 
 		Relays[Object_Data_Manger.Relay_Counter].Pointer_Switch->Input_PIN_ID = switch_Pin;
 
-		Rte_PortControl_Pin_Init(Relay_Pin,0);
-		Rte_PortControl_Pin_Level(Relay_Pin,0);
-		//Rte_PortControl_Pin_Init(switch_Pin,PULL_UP);
+		Rte_PortControl_Pin_Init(Relay_Pin,OUTPUT_SPEED_2MHZ_PP);
+		Rte_PortControl_Pin_Level(Relay_Pin,GPIO_LOW);
+		Rte_PortControl_Pin_Init(switch_Pin,PULL_UP);
 
 		Object_Data_Manger.Relay_Counter++;
 
@@ -142,110 +136,238 @@ static u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Rela
 
 }
 
-static void Object_Init_Objects_In_WIFI(void)
+static void Runnable_Object_Init_Objects_In_WIFI_1ms(void)
 {
 	static volatile u8 i = 0;
-
-	if(Rte_Write_Message_0x14(Relays[i].Object_WIFI_ID,Relays[i].Object_Number_In_Status_Message))
-	{
-
-		if(i == (NUMBER_RELAYS_ON_THIS_ECU-1))
-		{
-			Rte_Write_WIFI_Sequenc_Variable(OBJECT_FINISHED_SEQUENCE);
-		}
-		i++;
-	}
-
-}
-
-static void Object_Fetch_Shared_Varaibles(void)
-{
 	Rte_Read_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
-	Rte_Read_System_Mode(&System_Mode);
-	Rte_Read_Status_ID(&Object_Data_Manger.Object_Status_ID);
-}
 
-static void Object_Fetch_Message_From_Rte(void)
-{
-
-	u8 Local_Array[10];
-
-	if(Rte_Read_Message_0x10(Local_Array))
+	if(WIFI_Sequenc_Status == SYSTEM_ENABLE_SEQUENCE)
 	{
-		if(System_Mode == WIFI_MODE)
+		if(Write_Done == Rte_Write_Message_0x14(Relays[i].Object_WIFI_ID,Relays[i].Object_Number_In_Status_Message))
 		{
-			Object_Analize_Message_0x10(Local_Array);
-		}
-		else
-		{
-
-		}
-
-	}
-
-
-}
-
-
-
-static void Object_Analize_Message_0x10(u8* Pointer_Data)
-{
-	/*Local Variables*/
-	u8 Local_Data = 0;
-	u8 Local_ID = 0 ;
-	switch(Pointer_Data[1])
-	{
-	case OBJECT_TOGGLE:
-		Local_ID = Pointer_Data[0];
-		if(Get_Search_About_WIFI_ID(&Local_ID))
-		{
-			Rte_PortControl_Pin_Toggle(Local_ID);
-		}
-		break;
-	case OBJECT_STATUS:
-		/*
-		if(Rte_PortControl_Pin_Read(Pointer_Data[0],&Local_Data))
-		{
-
-			if(Local_Data == 0)
+			if(i == (NUMBER_OF_RELAYS_INTERNAL_ON_CHIP-1))
 			{
-				Local_Data = OBJECT_OFF;
-
+				WIFI_Sequenc_Status = OBJECT_FINISHED_SEQUENCE;
+				Rte_Write_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
+			}
+			i++;
+		}
+	}
+	else if(WIFI_Sequenc_Status == OBJECT_FINISHED_SEQUENCE)
+	{
+		u8 D0;
+		u8 D1;
+		if(Read_Done == Rte_Read_Message_0x03(&D0,&D1))
+		{
+			if(WIFI_OK == D0 && 0x14 == D1)
+			{
+				WIFI_Sequenc_Status = WIFI_DONE;
+				Rte_Write_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
+			}
+			else if(WIFI_ERROR == D0 && 0x14 == D1)
+			{
+				WIFI_Sequenc_Status = WIFI_ERROR;
+				Rte_Write_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
 			}
 			else
 			{
-				Local_Data = OBJECT_ON;
+				WIFI_Sequenc_Status = UNDEFINED;
+				Rte_Write_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
 			}
 
-			Object_Write_Message_0x11(Pointer_Data->Data[0],OBJECT_STATUS,Local_Data,0,0,0);
 		}
-		else
+
+	}
+	else
+	{
+
+	}
+
+
+
+
+}
+
+static void Runnable_Object_Auto_Off_1min(void)
+{
+	/* 
+		this runnables comes each 1 minute and check and count time for each relay
+		Rte Interface : Rte_PortControl_Pin_Read()
+						Rte_PortControl_Pin_Level()
+	 */
+
+	u8 Local_Relay_State;
+
+	for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
+	{
+		if( 0 != Relays[i].Timer_Referance )
 		{
-			Object_Write_Message_0x11(Pointer_Data->Data[0],OBJECT_ERROR,OBJECT_ERROR,0,0,0);
+			Rte_PortControl_Pin_Read(Relays[i].Output_PIN_ID,&Local_Relay_State);
+
+			if(1 == Local_Relay_State)
+			{
+				Relays[i].Time_Counter++;
+
+				if(Relays[i].Time_Counter >= Relays[i].Timer_Referance)
+				{
+					Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); 
+					Relays[i].Time_Counter = 0;
+				}
+				else
+				{
+					//Relays[i].Time_Counter = 0;
+				}
+
+			}
+
 		}
-		 */
-		break;
-
-	case OBJECT_READING:
-
-		break;
-
-	default:
-
-		break;
 	}
 }
 
-static u8 Get_Search_About_WIFI_ID(u8 *Pointer_ID)
+static void Runnable_Load_Nvm_Data(void)
 {
-	u8 Local_Return = 0;
-	for(u8 i=0 ; i < NUMBER_RELAYS_ON_THIS_ECU ;i++)
+	/*
+	This Runnable using to load last data to each object
+	*/
+
+
+	u8 Local_Relay_Status;
+	u8 Local_Switch_Status;
+	u8 Local_Current_Switch_Status;
+
+	if(Read_Done == Rte_Read_FD02(&Local_Relays_Status) && Read_Done == Rte_Read_FD03(&Local_Switches_Status))
+	{
+		for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
+		{
+			Struct_Status_Get_Valus(&Local_Relays_Status,Relays[i].Object_Number_In_Status_Message,&Local_Relay_Status);
+			Struct_Status_Get_Valus(&Local_Switches_Status,Relays[i].Object_Number_In_Status_Message,&Local_Switch_Status);
+
+			Relays[i].Pointer_Switch->Last_State_Pin = Local_Switch_Status; /* Restor Last Status*/
+
+			Rte_PortControl_Pin_Read(Relays[i].Pointer_Switch->Input_PIN_ID,&Local_Current_Switch_Status);
+
+			if(Local_Switch_Status != Local_Current_Switch_Status && 1 == Local_Relay_Status)
+			{
+				// Off if there isn't equal
+				Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); 
+
+				Relays[i].Pointer_Switch->Current_State_Pin = Local_Current_Switch_Status;
+				Relays[i].Pointer_Switch->Last_State_Pin = Local_Current_Switch_Status;
+			}
+			else if(1 == Local_Relay_Status)
+			{
+				Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,1); // On if there isn't equal
+			}
+			else
+			{
+				Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); 
+			}
+
+		}
+
+		Object_Data_Manger.Object_App_Status = OBJECT_RUNNING_NORMAL;
+
+	}
+
+}
+
+
+
+static void Runnable_Object_Message_0x10_5ms(void)
+{
+	/*Local Variables*/
+
+	volatile u8 Local_Pin_State = 0;
+	volatile Relay_t* Local_Relay;
+	volatile Idt_Message_0x10_t Local_Message_0x10;
+	if(Read_Done == Rte_Read_Message_0x10(&Local_Message_0x10))
+	{
+		switch(Local_Message_0x10.Data[1])
+		{
+		case Toggle_Command:
+
+
+
+			/*Data[0] contain Wi-Fi ID of object*/
+			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Data[0],&Local_Relay))
+			{
+				Rte_PortControl_Pin_Toggle(Local_Relay->Output_PIN_ID);
+				Rte_PortControl_Pin_Read(Local_Relay->Output_PIN_ID,&Local_Pin_State);
+
+				if(0 == Local_Pin_State)
+				{
+					/*this means object become off*/
+					Local_Relay->Time_Counter = 0;
+				}
+			}
+			break;
+		case Request_Status:
+
+			break;
+
+		case Request_Reading:
+
+			break;
+		case Request_Time_Ref_Read:
+
+			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Data[0],&Local_Relay))
+			{
+				Idt_Message_0x11_t Local_Message_0x11;
+
+				volatile u32 Local_Time_Ref_Data = Local_Relay->Timer_Referance; 
+
+				Local_Message_0x11.Data[0] = Local_Message_0x10.Data[0]; /*Object ID*/
+				Local_Message_0x11.Data[1] = Respond_Message;
+				Local_Message_0x11.Data[2] = ((u8) Local_Time_Ref_Data) ;
+				Local_Message_0x11.Data[3] = ((u8) (Local_Time_Ref_Data >>8)) ;
+				Local_Message_0x11.Data[4] = ((u8) (Local_Time_Ref_Data >>16)) ;
+				Local_Message_0x11.Data[5] = ((u8) (Local_Time_Ref_Data >>24));
+
+				Rte_Write_Message_0x11(&Local_Message_0x11);
+
+
+			}
+
+			break;
+		case Time_Change:
+			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Data[0],&Local_Relay))
+			{
+				
+
+				
+				 Local_Relay->Timer_Referance = Local_Message_0x10.Data[2] |
+				 								Local_Message_0x10.Data[3] << 8|
+												Local_Message_0x10.Data[4] << 16 |
+												Local_Message_0x10.Data[5] << 24;
+				
+
+				
+
+
+			}
+			break;
+
+		default:
+
+			break;
+		}
+
+	}
+
+}
+
+static u8 Get_Search_About_WIFI_ID(u8 copy_ID,Relay_t** Pointer_Relay)
+{
+	volatile u8 Local_Return = 0;
+
+	for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
 	{
 
-		if(Relays[i].Object_WIFI_ID == *Pointer_ID)
+		if(Relays[i].Object_WIFI_ID == copy_ID)
 		{
-			*Pointer_ID = Relays[i].Output_PIN_ID;
-			Local_Return = 1;
+			*Pointer_Relay = &Relays[i];
+			Local_Return= 1 ;
+
 			break;
 		}
 		else
@@ -257,30 +379,154 @@ static u8 Get_Search_About_WIFI_ID(u8 *Pointer_ID)
 	return Local_Return;
 }
 
-static u8 Get_Object_Status(u8 *Pointer_Data)
-{
+
+static void Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms(void)
+{	/*
+
+	this Runnable read input pins which control certain relay based on configuration 
+	and depend on reading this runnable will make relay on/off
+	Rte interface : Rte_PortControl_Pin_Read(PIN_ID,POINTER) 
+					Rte_PortControl_Pin_Level(PIN_ID,LEVEL)
+
+ */
 	u8 Local_Data = 0;
-	*Pointer_Data = 0;
 
-	for(u8 i=0 ; i < NUMBER_RELAYS_ON_THIS_ECU ;i++)
+	for(u8 i = 0;i <NUMBER_OF_RELAYS_INTERNAL_ON_CHIP;i++)
 	{
+		Rte_PortControl_Pin_Read(Relays[i].Pointer_Switch->Input_PIN_ID,&Local_Data);
+		Relays[i].Pointer_Switch->Current_State_Pin = Local_Data;
 
-		Rte_PortControl_Pin_Read(Relays[i].Output_PIN_ID,&Local_Data);
+		if((1 == Relays[i].Pointer_Switch->Current_State_Pin) && (0 == Relays[i].Pointer_Switch->Last_State_Pin))
+		{
+			/*Rising edge detected  -> switch object on */
+			Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,1); /*Write High*/
 
-		*Pointer_Data = (*Pointer_Data)|(Local_Data<<Relays[i].Object_Number_In_Status_Message);
+			Relays[i].Pointer_Switch->Last_State_Pin = Relays[i].Pointer_Switch->Current_State_Pin; /*store current in previous */
+		}
+		else if((0 == Relays[i].Pointer_Switch->Current_State_Pin) && (1 == Relays[i].Pointer_Switch->Last_State_Pin))
+		{
+			/*falling edge detected  -> switch object off */
+			Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); /*Write Low*/
+			Relays[i].Time_Counter = 0;
+			Relays[i].Pointer_Switch->Last_State_Pin = Relays[i].Pointer_Switch->Current_State_Pin; /*store current in previous */
+		}
+		else
+		{
 
+		}
 	}
-	return 1 ;
 }
 
+
 /********************Periodic Functions*****************************/
-static void Object_Status_Message_Send_Each_10ms(void)
+static void Runnable_Object_Update_Relays_And_Switch_Status_10ms(void)
 {
-	u8 Local_Status = 0;
-	if(Get_Object_Status(&Local_Status))
+	u8 Local_return = 1;
+	u8 Local_Data;
+
+	for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
 	{
-		Rte_Write_Message_0x13(Local_Status,0,0,0,0,Object_Data_Manger.Object_Status_ID);
+		Rte_PortControl_Pin_Read(Relays[i].Output_PIN_ID,&Local_Data);
+
+		//*Pointer_Data = (*Pointer_Data)|(Local_Data<<Relays[i].Object_Number_In_Status_Message);
+		if(1 == Struct_Status_Write_Valus(&Local_Relays_Status,Relays[i].Object_Number_In_Status_Message,Local_Data))
+		{
+
+		}
+		else
+		{
+			Local_return = 0;
+		}
+		if(1 == Struct_Status_Write_Valus(&Local_Switches_Status,Relays[i].Object_Number_In_Status_Message,Relays[i].Pointer_Switch->Current_State_Pin))
+		{
+
+		}
+		else
+		{
+			Local_return = 0;
+		}
 	}
+	if(E_OK == Rte_Write_FD02(&Local_Relays_Status))
+	{
+
+	}
+	else
+	{
+		Local_return = 0;
+	}
+
+	if(E_OK == Rte_Write_FD03(&Local_Relays_Status))
+	{
+
+	}
+	else
+	{
+		Local_return = 0;
+	}
+
+	return Local_return ;
+
+
 
 }
 /*************************************************/
+static u8 Struct_Status_Write_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 copy_Level)
+{
+	u8 Local_Return = 1;
+
+	u8 Bit_Section =  (copy_Bit_ID % 8 ); /*Calculate which Bit in Byte*/
+	u8 byte_Section = (copy_Bit_ID / 8); /*Calculate Byte its self*/
+
+	u8 *pointer; 	/*Local Pointer to access Struct in u8 size*/
+
+	pointer = &Struct_Pointer->Relay_status[0]; /*giving struct addresses*/
+
+	if(byte_Section < LENGHT_STATUS_OBJECT_ON_SYSTEM*8)
+	{
+		pointer = pointer + byte_Section;
+		if(1 == copy_Level)
+		{
+			SET_BIT(*pointer, Bit_Section);
+		}
+		else if(0 == copy_Level)
+		{
+			CLR_BIT(*pointer, Bit_Section);
+		}
+		else
+		{
+			Local_Return = 0; /*Wrong inputs */
+		}
+
+	}
+	else
+	{
+		Local_Return = 0; /* wrong inputs*/
+	}
+
+	return Local_Return;
+
+}
+
+static u8 Struct_Status_Get_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 *Pointer_Value)
+{
+
+	u8 Local_Return = 1;
+	u8 Bit_Section = (copy_Bit_ID % 8 );
+	u8 byte_Section = (copy_Bit_ID / 8);
+
+	u8 Local_Data ;
+	u8 *pointer;
+	pointer = &Struct_Pointer->Relay_status[0];
+
+	if(byte_Section < LENGHT_STATUS_OBJECT_ON_SYSTEM*8)
+	{
+		pointer = pointer + byte_Section;
+		*Pointer_Value =  GET_BIT(*pointer, Bit_Section);
+	}
+	else
+	{
+		Local_Return = 0;
+	}
+	return  Local_Return;
+}
+

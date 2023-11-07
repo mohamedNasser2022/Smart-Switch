@@ -14,13 +14,16 @@
 #include"Data_Structure.h"
 #include"RTE.h"
 #include"System_Main.h"
+#include"Rte_Nvm_STD.h"
+#include"Rte_Message_STD.h"
+
 
 #include"Comunication_Manger.h"
 #include "Protocol_Translator.h"
 #include "Protocol_Translator_Private.h"
 
 volatile u32 Protocol_System_Time_ms = 0;
-
+static volatile System_Mode ;
 void HAL_voidSmartProtocol_Init(void)
 {
 
@@ -35,7 +38,7 @@ void Protocol_Translator_Polling(void)
 {
 	volatile u8 Local_For_Test = 0;
 
-	Rte_Read_Ports();
+	
 
 
 }
@@ -45,36 +48,49 @@ void Protocol_Translator_Time(void)
 {
 	Protocol_System_Time_ms++;
 
-	if(Protocol_System_Time_ms % 200 == 0 )
+	if(Protocol_System_Time_ms % 500 == 0)
 	{
-		HAL_voidCheckReceving_DataFrom_ComLayer_each_200ms();  // Polling on Recevied data
+		Runnable_Read_Messages_Status_10ms();
 	}
-	//if(System_Mode == GO_APPLICATION )
-	{
-		if(Protocol_System_Time_ms % 10 == 0)
-		{
-#if CONTROLLER_ID == STM_CONTROLLER
-			HAL_voidSendObjectsStatusToWifiController_each_10ms();
-#endif
-		}
-	}
+
+	Runnable_Read_Messages_1ms();
 }
 
-static void Rte_Read_Ports(void)
+static void Runnable_Read_Messages_Status_10ms(void)
+{
+	Rte_Read_System_Mode(&System_Mode);
+
+	if(WIFI_MODE == System_Mode)
+	{
+		
+		Idt_Rec003_FD02 Local_Data ; 
+
+		if(Read_Done == Rte_Read_FD02(&Local_Data))
+		{
+			Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x13,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13);
+		}
+		
+	}
+
+
+}
+
+
+
+static void Runnable_Read_Messages_1ms(void)
 {
 	u8 Local_Data[MAX_NUMER_OF_DATA_LENGTH];
+
+	Idt_Message_0x11_t Local_Message_0x11;
+	
 	if(Read_Done == Rte_Read_Message_0x01(&Local_Data))
 	{
 		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x01,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x01);
 	}
+	
 	if(Read_Done == Rte_Read_Message_0x02(&Local_Data))
 	{
 		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x02,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x02);
-	}
-
-	if(Read_Done == Rte_Read_Message_0x13(&Local_Data))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x13,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13);
 	}
 	if(Read_Done == Rte_Read_Message_0x14(&Local_Data))
 	{
@@ -88,10 +104,15 @@ static void Rte_Read_Ports(void)
 	{
 		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x21,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x21);
 	}
+	if(Read_Done == Rte_Read_Message_0x11(&Local_Message_0x11))
+	{
+		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Message_0x11,0x11,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x11);
+	}
 
 
 
 }
+
 
 u8 Protocol_Translator_Receive_Messages_Comunication_Manger(void *Pointer_Data)
 {
@@ -120,7 +141,7 @@ static void Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(u8* Po
 
 		Queue0_Push(&Local_Swap,copy_MessageID);
 
-		Queue0_Push(&Local_Swap,ECU_NUMBER);  // need to Discuss
+		//Queue0_Push(&Local_Swap,ECU_NUMBER);  // need to Discuss
 
 		for(u8 i = 0; i < copy_Data_Length; i++)
 		{
@@ -138,7 +159,7 @@ static void Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(u8* Po
 
 		Queue2_Push(&Local_Swap,copy_MessageID);
 
-		Queue2_Push(&Local_Swap,ECU_NUMBER);  // need to Discuss
+		//Queue2_Push(&Local_Swap,ECU_NUMBER);  // need to Discuss
 
 		for(u8 i = 0; i < copy_Data_Length; i++)
 		{
@@ -167,7 +188,7 @@ static void Removing_Comunication_Header_Create_Message(void* Pointer_Data)
 
 	Queue0_Pop(Pointer_Data,&Comunication_Header);   // Comunication Header
 	Queue0_Pop(Pointer_Data,&Local_Array[0]);        // Message ID
-	Queue0_Pop(Pointer_Data,&Local_ECU_ID); 		 // ECU ID
+	//Queue0_Pop(Pointer_Data,&Local_ECU_ID); 		 // ECU ID
 
 	while(Queue0_Pop(Pointer_Data,&Local_Data))
 	{

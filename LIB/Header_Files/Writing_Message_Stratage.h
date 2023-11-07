@@ -17,15 +17,6 @@
 #define MESSAGED_ID_TYPE   u8
 #define Message_Status_TYPE   u8
 
-enum{
-	Not_Availabe,
-	Available,
-	Write_Done,
-	Write_Faild,
-	Read_Done,
-	Read_Faild,
-	On_progress,
-};
 
 /*-------------------------*/
 
@@ -87,15 +78,7 @@ struct
 
 /*-------------------------*/
 
-#define MESSAGE_0x10	  0x10
-#define MESSAGE_ARRAY_ELEMENTS_NUMBER_0x10      6
- struct
-{
-	MESSAGED_ID_TYPE Message_ID;
-	u8 Data[MESSAGE_ARRAY_ELEMENTS_NUMBER_0x10];
-	u8 Message_Status;
 
-}Message_0x10;
 
 /*-------------------------*/
 
@@ -114,15 +97,8 @@ struct
 /*-------------------------*/
 
 #define MESSAGE_0x13	  0x13
-#define MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13      6
- struct
-{
-	MESSAGED_ID_TYPE Message_ID;
-	u8 Data[MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13];
-	u8 Message_Status;
-
-}Message_0x13;
-
+#define MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13      8
+ 
 /*-------------------------*/
 
 /*-------------------------*/

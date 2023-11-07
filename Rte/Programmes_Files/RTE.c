@@ -11,13 +11,67 @@
 #include"Data_Structure.h"
 #include"LIB_ERROR.h"
 #include"RTE.h"
+#include"Rte_Nvm_STD.h"
+#include"Rte_Message_STD.h"
+
 
 /*--------------------------system Varabies---------------------------------------*/
 
-static u8 System_Mode = INITIOLAZTION_MODE;
+static u8 System_Mode = NOT_DEFINE;
 static u8 WIFI_Sequenc_Variable = NOT_DEFINE;
 static u8 Object_Finished_WIFI_Init = NOT_DEFINE;
 static u8 Status_Ecu_ID;
+
+
+
+static struct
+{
+	Idt_Rec001_FD00 Rec001_FD00;
+	u8 Nvm_Data_Status;
+
+}Rte_Data_Rec001_FD00;
+
+static struct
+{
+	Idt_Rec002_FD01 Rec002_FD01;
+	u8 Nvm_Data_Status;
+
+}Rte_Data_Rec002_FD01;
+
+static struct
+{
+	Idt_Rec003_FD02 Rec003_FD02;
+	u8 Nvm_Data_Status;
+
+}Rte_Data_Rec003_FD02;
+
+static struct
+{
+	Idt_Rec004_FD03 Rec004_FD03;
+	u8 Nvm_Data_Status;
+
+}Rte_Data_Rec004_FD03;
+
+static struct {
+
+	Idt_Message_0x10_t Rte_Message_0x10;
+	u8 Rte_Message_Status;
+
+}Rte_Message_0x10_Struct;
+
+static struct {
+
+	Idt_Message_0x11_t Rte_Message_0x11;
+	u8 Rte_Message_Status;
+
+}Rte_Message_0x11_Struct;
+
+static struct
+{
+	Idt_Message_0x13_t Relays_Status;
+	u8 Rte_Message_Status;
+}Message_0x13;
+
 /*--------------------------------------------------------------------------------*/
 
 
@@ -44,8 +98,8 @@ void RTE_Init(void)
 	System_Init();
 	Object_Init();
 	I_O_Interface_Initialization();
-
-	EEPROM_Driver_Initialization();
+	MemIf_Init();
+	
 
 }
 
@@ -56,7 +110,8 @@ void RTE_Polling(void)
 	system_Polling();
 	I_O_Interface_Polling();
 	Object_Polling();
-	EEPROM_Driver_Polling();
+	MemIf_Polling();
+	
 
 
 }
@@ -68,11 +123,18 @@ void RTE_Periodic(void)
 	UART_Manger_Time();
 	I_O_Interface_Periodic();
 	I2C_Periodic();
+	Protocol_Translator_Time();
 	EEPROM_Driver_Time();
+	MemIf_Time();
 }
 
 /*---------------Port between Comuncation_Manger and Protocol Translator-------------------------------------------------*/
 /*Send Port*/
+
+u8 Rte_Read_Relays_Status()
+{
+	/*read status*/
+}
 
 u8 Rte_Send_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncation_Manger_Interface* Pointer_To_Data)
 {
@@ -153,7 +215,7 @@ u8 Rte_Read_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncat
 
 /*----------------------------------------------------------------------------------------------------------*/
 
-/*--------------------------------Control Port I/O--------------------------------------*/
+/*-------------------------------- Control Port I/O --------------------------------------*/
 
 u8 Rte_Port_Control_Pins(u8 copy_Command,u8 copy_Pin_ID,u8 copy_Pin_Mode,u8 copy_Pin_Level,u8* pointer_to_Save)
 {
@@ -192,96 +254,35 @@ u8 Rte_Port_Control_Pins(u8 copy_Command,u8 copy_Pin_ID,u8 copy_Pin_Mode,u8 copy
 
 /*------------------------------ Global port read/Write for shared variables ----------------------*/
 
-u8 Rte_Compounent_Read_Write_Shared_Data(u8 copy_ID_Of_Variable,u8 copy_Read_Write,u8 copy_Data,u8* Pointer_to_Get_Data_In)
+u8 Rte_Read_System_Mode(u8* Pointer_Syste_Mode)
 {
-	u8 Local_Return = 1;
-	switch(copy_ID_Of_Variable)
-	{
-
-	case SYSTEM_MODE:
-
-		if(copy_Read_Write == READ_MESSAGE)
-		{
-			*Pointer_to_Get_Data_In = System_Mode;
-		}
-		else if(copy_Read_Write == WRITE_MESSAGE)
-		{
-			System_Mode = copy_Data;
-		}
-		else
-		{
-			Local_Return = 0 ;
-		}
-
-		break;
-
-	case WIFI_SEQUENCE_VARIABLE:
-
-		if(copy_Read_Write == READ_MESSAGE)
-		{
-			*Pointer_to_Get_Data_In = WIFI_Sequenc_Variable;
-		}
-		else if(copy_Read_Write == WRITE_MESSAGE)
-		{
-			WIFI_Sequenc_Variable = copy_Data;
-		}
-		else
-		{
-			Local_Return = 0 ;
-		}
-
-
-
-		break;
-	case OBJECT_FINISHED_WFIFI_INIT:
-
-		if(copy_Read_Write == READ_MESSAGE)
-		{
-			*Pointer_to_Get_Data_In = Object_Finished_WIFI_Init;
-		}
-		else if(copy_Read_Write == WRITE_MESSAGE)
-		{
-			Object_Finished_WIFI_Init = copy_Data;
-
-		}
-		else
-		{
-			Local_Return = 0 ;
-		}
-
-
-
-		break;
-	case STATUS_ECU_ID:
-
-		if(copy_Read_Write == READ_MESSAGE)
-		{
-			*Pointer_to_Get_Data_In = Status_Ecu_ID;
-		}
-		else if(copy_Read_Write == WRITE_MESSAGE)
-		{
-			Status_Ecu_ID = copy_Data;
-
-		}
-		else
-		{
-			Local_Return = 0 ;
-		}
-
-
-
-		break;
-
-	default:
-		Local_Return = 0;
-
-		break;
-	}
-
-	return Local_Return ;
+	
+	*Pointer_Syste_Mode = System_Mode;
+	return 1;
 }
 
+u8 Rte_Write_System_Mode(u8* Pointer_Syste_Mode)
+{
+	
+	System_Mode = *Pointer_Syste_Mode;
+	return 1;
+}
 
+u8 Rte_Read_WIFI_Sequenc_Variable(u8* Pointer_WIFI_Sequenc_Variable)
+{
+	
+	*Pointer_WIFI_Sequenc_Variable = WIFI_Sequenc_Variable;
+	return 1;
+}
+
+u8 Rte_Write_WIFI_Sequenc_Variable(u8* Pointer_WIFI_Sequenc_Variable)
+{
+	
+	WIFI_Sequenc_Variable = *Pointer_WIFI_Sequenc_Variable;
+	return 1;
+}
+
+/*------------------------------------------------------------------*/
 u8 Rte_Write_Message_0x01(u8 copy_Data_0,u8 copy_Data_1,u8 copy_Data_2) /*System Mode shall write this message*/
 {
 	u8 Local_Return = Write_Done ;
@@ -373,23 +374,25 @@ u8 Rte_Read_Message_0x02(u8 *Pointer_Data) /*Protocol Translator shall read this
 
 }
 
-u8 Rte_Write_Message_0x13(u8 copy_Data_0,u8 copy_Data_1,u8 copy_Data_2,u8 copy_Data_3,u8 copy_Data_4,u8 copy_Data_5) /*Object SW shall write this message*/
+u8 Rte_Write_Message_0x13(Idt_Message_0x13_t *Pointer_Data) /*Object SW shall write this message*/
 {
 	u8 Local_Return = Write_Done ;
 
-	if(On_progress != Message_0x13.Message_Status)
+
+	u8 Local_Size = sizeof(Idt_Message_0x13_t) / sizeof(u8);
+
+	if(Not_Availabe == Message_0x13.Rte_Message_Status )
 	{
-		Message_0x13.Message_Status = On_progress;
+		Message_0x13.Rte_Message_Status = On_progress;
 
+		for(u8 i = 0 ; i < Local_Size; i++)
+		{
+			
+			Message_0x13.Relays_Status.Data[i] = Pointer_Data->Data[i];
+		}
+	
 
-		Message_0x13.Data[0] = copy_Data_0;
-		Message_0x13.Data[1] = copy_Data_1;
-		Message_0x13.Data[2] = copy_Data_2;
-		Message_0x13.Data[3] = copy_Data_3;
-		Message_0x13.Data[4] = copy_Data_4;
-		Message_0x13.Data[5] = copy_Data_5;
-
-		Message_0x13.Message_Status = Available;
+		Message_0x13.Rte_Message_Status = Available;
 	}
 	else
 	{
@@ -399,20 +402,23 @@ u8 Rte_Write_Message_0x13(u8 copy_Data_0,u8 copy_Data_1,u8 copy_Data_2,u8 copy_D
 	return Local_Return;
 }
 
-u8 Rte_Read_Message_0x13(u8 *Pointer_Data) /*Protocol Translator shall read this message*/
+u8 Rte_Read_Message_0x13(Idt_Message_0x13_t *Pointer_Data) /*Protocol Translator shall read this message*/
 {
 	u8 Local_Return = Read_Done ;
 
-	if(Available == Message_0x13.Message_Status)
-	{
-		Message_0x13.Message_Status = On_progress;
+	u8 Local_Size = sizeof(Idt_Message_0x13_t) / sizeof(u8);
 
-		for(u8 i = 0 ; i < MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13; i++)
+	if(Available == Message_0x13.Rte_Message_Status)
+	{
+		Message_0x13.Rte_Message_Status = On_progress;
+
+		for(u8 i = 0 ; i < Local_Size; i++)
 		{
-			*(Pointer_Data + i) = Message_0x13.Data[i] ;
+			Pointer_Data->Data[i] = Message_0x13.Relays_Status.Data[i];
+			
 		}
 
-		Message_0x13.Message_Status = Not_Availabe;
+		Message_0x13.Rte_Message_Status = Not_Availabe;
 	}
 	else
 	{
@@ -427,7 +433,7 @@ u8 Rte_Write_Message_0x14(copy_Data_0,copy_Data_1) /*Object SW shall write this 
 {
 	u8 Local_Return = Write_Done ;
 
-	if(On_progress != Message_0x14.Message_Status)
+	if(On_progress != Message_0x14.Message_Status && Available != Message_0x14.Message_Status)
 	{
 		Message_0x14.Message_Status = On_progress;
 
@@ -611,21 +617,24 @@ u8 Rte_Read_Message_0x03(u8 *Pointer_Data_0,u8 *Pointer_Data_1) /*any SWs Read s
 
 }
 
-u8 Rte_Write_Message_0x10(u8 *Pointer_Data) /*Protocol Translator shall write this message*/
+u8 Rte_Write_Message_0x10(Idt_Message_0x10_t *Pointer_Data) /*Protocol Translator shall write this message*/
 {
 	u8 Local_Return = Write_Done ;
 
-	if(On_progress != Message_0x10.Message_Status)
-	{
-		Message_0x10.Message_Status = On_progress;
+	u8 Data_Lenght = sizeof(Idt_Message_0x10_t)/sizeof(u8) ;
 
-		for(u8 i = 0 ; i < MESSAGE_ARRAY_ELEMENTS_NUMBER_0x10; i++)
+
+	if(On_progress != Rte_Message_0x10_Struct.Rte_Message_Status)
+	{
+		Rte_Message_0x10_Struct.Rte_Message_Status = On_progress;
+
+		for(u8 i = 0 ; i < Data_Lenght; i++)
 		{
-			Message_0x10.Data[i] = *(Pointer_Data + i);
+			Rte_Message_0x10_Struct.Rte_Message_0x10.Data[i] = Pointer_Data->Data[i];
 		}
 
 
-		Message_0x10.Message_Status = Available;
+		Rte_Message_0x10_Struct.Rte_Message_Status = Available;
 	}
 	else
 	{
@@ -633,24 +642,26 @@ u8 Rte_Write_Message_0x10(u8 *Pointer_Data) /*Protocol Translator shall write th
 	}
 
 	return Local_Return;
+
 }
 
-u8 Rte_Read_Message_0x10(u8 *Pointer_Data) /*any SWs Read shall read this message*/
+u8 Rte_Read_Message_0x10(Idt_Message_0x10_t *Pointer_Data) /*any SWs Read shall read this message*/
 {
 	u8 Local_Return = Read_Done ;
 
-	if(Available == Message_0x10.Message_Status)
-	{
-		Message_0x10.Message_Status = On_progress;
+	u8 Data_Lenght = sizeof(Idt_Message_0x10_t)/sizeof(u8) ;
 
-		for(u8 i = 0 ; i < MESSAGE_ARRAY_ELEMENTS_NUMBER_0x10; i++)
+	if(Available == Rte_Message_0x10_Struct.Rte_Message_Status)
+	{
+		Rte_Message_0x10_Struct.Rte_Message_Status = On_progress;
+
+		for(u8 i = 0 ; i < Data_Lenght; i++)
 		{
-			 *(Pointer_Data + i) = Message_0x10.Data[i] ;
+			Pointer_Data->Data[i] = Rte_Message_0x10_Struct.Rte_Message_0x10.Data[i] ;
+			
 		}
 
-		;
-
-		Message_0x10.Message_Status = Not_Availabe;
+		Rte_Message_0x10_Struct.Rte_Message_Status = Not_Availabe;
 	}
 	else
 	{
@@ -661,339 +672,240 @@ u8 Rte_Read_Message_0x10(u8 *Pointer_Data) /*any SWs Read shall read this messag
 
 }
 
-/*
-u8 Rte_Compounent_Read_Write_Shared_Data_Messages(u8 copy_Message_ID,u8 Read_OR_Write,u8* pointer_Data,u8 Number_of_Elments
-		,u8 Reader_Receciver_ID)
+u8 Rte_Write_Message_0x11(Idt_Message_0x11_t *Pointer_Data) /*Protocol Translator shall write this message*/
 {
-	volatile u8 Local_Return = 1;
+	u8 Local_Return = Write_Done ;
 
-	switch(copy_Message_ID)
+	u8 Data_Lenght = sizeof(Idt_Message_0x11_t)/sizeof(u8) ;
+
+
+	if(On_progress != Rte_Message_0x11_Struct.Rte_Message_Status)
 	{
-	case MESSAGE_0x01:
+		Rte_Message_0x11_Struct.Rte_Message_Status = On_progress;
 
-		if( Message_System_Configurations_0x01.To_Who_Read == Reader_Receciver_ID )
+		for(u8 i = 0 ; i < Data_Lenght; i++)
 		{
-			if( Rte_Read_Write_Message(&Message_System_Configurations_0x01.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_System_Configurations_0x01.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_System_Configurations_0x01.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write)
-		{
-			if ( Rte_Read_Write_Message(&Message_System_Configurations_0x01.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_System_Configurations_0x01.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
+			Rte_Message_0x11_Struct.Rte_Message_0x11.Data[i] = Pointer_Data->Data[i];
 		}
 
-		break;
-	case MESSAGE_0x02:  // Message_System_Mode_0x02
 
-		if( Message_System_Mode_0x02.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_System_Mode_0x02.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_System_Mode_0x02.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_System_Mode_0x02.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_System_Mode_0x02.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_System_Mode_0x02.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-
-	case MESSAGE_0x03:  // Message_WIFI_Respond_0x03
-
-		if( Message_WIFI_Respond_0x03.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_WIFI_Respond_0x03.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_WIFI_Respond_0x03.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_WIFI_Respond_0x03.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_WIFI_Respond_0x03.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_WIFI_Respond_0x03.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-
-	case MESSAGE_0x10: //Message_Object_Control_0x10
-
-		if( Message_Object_Control_0x10.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_Object_Control_0x10.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Control_0x10.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_Object_Control_0x10.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_Object_Control_0x10.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Control_0x10.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-	case MESSAGE_0x11: // Message_Object_Reading_0x11
-
-		if( Message_Object_Reading_0x11.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_Object_Reading_0x11.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Reading_0x11.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_Object_Reading_0x11.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_Object_Reading_0x11.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Reading_0x11.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-
-	case MESSAGE_0x13: // Message_Object_Status_0x13
-
-		if( Message_Object_Status_0x13.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_Object_Status_0x13.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Status_0x13.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_Object_Status_0x13.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_Object_Status_0x13.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Status_0x13.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-
-	case MESSAGE_0x14: //Message_Object_Information_0x14
-
-		if( Message_Object_Information_0x14.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_Object_Information_0x14.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Information_0x14.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_Object_Information_0x14.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_Object_Information_0x14.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_Object_Information_0x14.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-	case MESSAGE_0x20:
-
-		if( Message_SSID_0x20.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_SSID_0x20.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_SSID_0x20.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_SSID_0x20.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_SSID_0x20.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_SSID_0x20.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-	case MESSAGE_0x21:
-
-		if( Message_PASS_0x21.To_Who_Read == Reader_Receciver_ID )
-		{
-			if( Rte_Read_Write_Message(&Message_PASS_0x21.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_PASS_0x21.To_Who_Read = MESSAGE_NOT_VALID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(Message_PASS_0x21.To_Who_Read == MESSAGE_NOT_VALID && WRITE_MESSAGE == Read_OR_Write )
-		{
-			if ( Rte_Read_Write_Message(&Message_PASS_0x21.Data,Read_OR_Write,Number_of_Elments,pointer_Data) )
-			{
-				Message_PASS_0x21.To_Who_Read = Reader_Receciver_ID;
-			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else
-		{
-			Local_Return = 0;
-		}
-
-		break;
-
-	default:
-
-		Local_Return = 0;
-
-		break;
-
-	}
-	return Local_Return;
-}
-
-static u8 Rte_Read_Write_Message(u8* source,u8 Read_OR_Write,u8 Number_of_Elments,u8* Destination)
-{
-	u8* Local_Swap_Pointer;
-	u8  Local_Return = 1;
-
-	if( READ_MESSAGE  == Read_OR_Write )
-	{
-
-	}
-	else if(WRITE_MESSAGE  == Read_OR_Write )
-	{
-		Local_Swap_Pointer = source;
-		source = Destination;
-		Destination = Local_Swap_Pointer;
+		Rte_Message_0x11_Struct.Rte_Message_Status = Available;
 	}
 	else
 	{
-		Local_Return = 0;
+		Local_Return = Write_Faild;
 	}
-
-	if(1 == Local_Return)
-	{
-		for(u8 i = 0 ; i < Number_of_Elments ; i++)
-		{
-			Destination[i] = source[i];
-			if(Destination[i] == '\0')
-			{
-				break;
-			}
-		}
-	}
-	else
-	{
-
-	}
-
 
 	return Local_Return;
 
 }
 
- */
-/*-------------------------------------------------------------------------------------------*/
+u8 Rte_Read_Message_0x11(Idt_Message_0x11_t *Pointer_Data) /*any SWs Read shall read this message*/
+{
+	u8 Local_Return = Read_Done ;
+
+	u8 Data_Lenght = sizeof(Idt_Message_0x11_t)/sizeof(u8) ;
+
+	if(Available == Rte_Message_0x11_Struct.Rte_Message_Status)
+	{
+		Rte_Message_0x11_Struct.Rte_Message_Status = On_progress;
+
+		for(u8 i = 0 ; i < Data_Lenght; i++)
+		{
+			Pointer_Data->Data[i] = Rte_Message_0x11_Struct.Rte_Message_0x11.Data[i] ;
+			
+		}
+
+		Rte_Message_0x11_Struct.Rte_Message_Status = Not_Availabe;
+	}
+	else
+	{
+		Local_Return = Read_Faild;
+	}
+
+	return Local_Return;
+
+}
+/*--------------Nvm Interface --------------*/
+
+STD_Returns Rte_Read_Hardware_Version(u8 *Pointer_Data)
+{
+	*Pointer_Data = Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version;
+	return E_OK;
+}
+
+STD_Returns Rte_Write_Hardware_Version(u8 copy_Data)
+{
+	Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = copy_Data;
+
+	return E_OK;
+}
+
+STD_Returns Rte_Write_FD00(Idt_Rec001_FD00 *Pointer_data)
+{
+	Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = Pointer_data->Hardware_Version;
+	Rte_Data_Rec001_FD00.Rec001_FD00.Host_Software_Version = Pointer_data->Host_Software_Version;
+	Rte_Data_Rec001_FD00.Rec001_FD00.WIFI_Software_Version = Pointer_data->WIFI_Software_Version;
+
+	return E_OK;
+}
+
+STD_Returns Rte_Nvm_Write_FD00(Idt_Rec001_FD00 *Pointer_data)
+{
+	Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = Pointer_data->Hardware_Version;
+	Rte_Data_Rec001_FD00.Rec001_FD00.Host_Software_Version = Pointer_data->Host_Software_Version;
+	Rte_Data_Rec001_FD00.Rec001_FD00.WIFI_Software_Version = Pointer_data->WIFI_Software_Version;
+
+	Rte_Data_Rec001_FD00.Nvm_Data_Status = Rte_Load_Done;
+
+	return E_OK;
+}
+
+STD_Returns Rte_Write_FD01(Idt_Rec002_FD01 *Pointer_data)
+{ 
+	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem = Pointer_data->Number_Relays_On_Syetem;
+	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Sensors_On_Syetem = Pointer_data->Number_Sensors_On_Syetem;
+	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Switches_On_Syetem = Pointer_data->Number_Switches_On_Syetem;
+
+	return E_OK;
+}
+
+STD_Returns Rte_Nvm_Write_FD01(Idt_Rec002_FD01 *Pointer_data)
+{ 
+	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem = Pointer_data->Number_Relays_On_Syetem;
+	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Sensors_On_Syetem = Pointer_data->Number_Sensors_On_Syetem;
+	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Switches_On_Syetem = Pointer_data->Number_Switches_On_Syetem;
+
+	Rte_Data_Rec002_FD01.Nvm_Data_Status = Rte_Load_Done;
+
+	return E_OK;
+}
+
+STD_Returns Rte_Write_FD02(Idt_Rec003_FD02 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec003_FD02.Rec003_FD02.Relay_status[i] = Pointer_data->Relay_status[i];
+	}
+
+	return Write_Done;
+}
+
+STD_Returns Rte_Nvm_Write_FD02(Idt_Rec003_FD02 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec003_FD02.Rec003_FD02.Relay_status[i] = Pointer_data->Relay_status[i];
+	}
+	Rte_Data_Rec003_FD02.Nvm_Data_Status = Rte_Load_Done;
+	return Write_Done;
+}
+
+STD_Returns Rte_Write_FD03(Idt_Rec004_FD03 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec004_FD03.Rec004_FD03.Switch_status[i] = Pointer_data->Switch_status[i];
+	}
+
+	return Write_Done;
+}
+
+STD_Returns Rte_Nvm_Write_FD03(Idt_Rec004_FD03 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec004_FD03.Rec004_FD03.Switch_status[i] = Pointer_data->Switch_status[i];
+	}
+	Rte_Data_Rec004_FD03.Nvm_Data_Status = Rte_Load_Done;
+	return Write_Done;
+}
+
+STD_Returns Rte_Read_FD00(Idt_Rec001_FD00 *Pointer_data)
+{
+	u8 Local_Return = Read_Done;
+	
+	if(Rte_Load_Done == Rte_Data_Rec001_FD00.Nvm_Data_Status)
+	{
+		Pointer_data->Hardware_Version = Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version ;
+		Pointer_data->Host_Software_Version = Rte_Data_Rec001_FD00.Rec001_FD00.Host_Software_Version ;
+		Pointer_data->WIFI_Software_Version = Rte_Data_Rec001_FD00.Rec001_FD00.WIFI_Software_Version ;
+	}
+	else
+	{
+		Local_Return = Read_Faild ;
+	}
+	return Local_Return;
+}
+
+STD_Returns Rte_Read_FD01(Idt_Rec002_FD01 *Pointer_data)
+{
+	u8 Local_Return = Read_Done;
+
+	if(Rte_Load_Done == Rte_Data_Rec002_FD01.Nvm_Data_Status)
+	{
+		Pointer_data->Number_Relays_On_Syetem = Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem ;
+		Pointer_data->Number_Switches_On_Syetem = Rte_Data_Rec002_FD01.Rec002_FD01.Number_Switches_On_Syetem ;
+		Pointer_data->Number_Sensors_On_Syetem = Rte_Data_Rec002_FD01.Rec002_FD01.Number_Sensors_On_Syetem ;
+	}
+	else
+	{
+		Local_Return = Read_Faild ;
+	}
+
+	return Local_Return;
+}
+
+STD_Returns Rte_Read_FD02(Idt_Rec003_FD02 *Pointer_data)
+{
+	u8 Local_Return = Read_Done;
+
+	u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
+
+	if(Rte_Load_Done == Rte_Data_Rec003_FD02.Nvm_Data_Status)
+	{
+		for(u8 i = 0 ; i < Data_Lenght ; i++)
+		{
+			Pointer_data->Relay_status[i] = Rte_Data_Rec003_FD02.Rec003_FD02.Relay_status[i] ;
+		}
+
+	}
+	else
+	{
+		Local_Return = Read_Faild;
+	}
+
+
+	return Local_Return;
+}
+
+STD_Returns Rte_Read_FD03(Idt_Rec004_FD03 *Pointer_data)
+{
+	u8 Local_Return = Read_Done;
+
+	u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
+
+	if(Rte_Load_Done == Rte_Data_Rec004_FD03.Nvm_Data_Status)
+	{
+		for(u8 i = 0 ; i < Data_Lenght ; i++)
+		{
+			Pointer_data->Switch_status[i] = Rte_Data_Rec004_FD03.Rec004_FD03.Switch_status[i] ;
+		}
+
+	}
+	else
+	{
+		Local_Return = Read_Faild;
+	}
+
+
+	return Local_Return;
+}
