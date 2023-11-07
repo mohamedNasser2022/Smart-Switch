@@ -18,6 +18,7 @@
 #include "Mem_Abstraction_Private.h"
 
 volatile static u32 MemIf_Time_ms = 0;
+volatile static u32 MemIf_Time_ms_0 = 0;
 
 /*****************************************************************/
 
