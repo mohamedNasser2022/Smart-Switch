@@ -12,23 +12,42 @@
 #define BOOT_HALT  0x00
 
 /*System Parameters*/
-#define NUMBER_RELAYS_ON_THIS_ECU    4
-#define NUMBER_SWITCHS_ON_THIS_ECU   4
+#define NUMBER_OF_RELAYS_INTERNAL_ON_CHIP               4
+#define LENGHT_STATUS_OBJECT_ON_SYSTEM        8
+
+
+
 #define PROTOCOL_DATA_LENGTH         6
 
 
 /*System mode*/
-#define  UNDEFINED		         	     0
-#define  INITIOLAZTION_MODE			     1
-#define  WIFI_INITIOLAZTION_MODE	     2
-#define  WIFI_INITIOLAZTION_MODE_BUSY	 3
-#define  WIFI_MODE  		   		     14
-#define  NORMAL_MODE 			 	     5
-#define  GO_APPLICATION_MODE			 6
-#define  WIFI_OK		            	 7
-#define  WIFI_DONE		            	 8
-#define  WIFI_ERROR		            	 9
-#define  STAND_BY_MODE			         10
+enum
+{
+    UNDEFINED,
+    INITIOLAZTION_MODE,
+    WIFI_INITIOLAZTION_MODE,
+    WIFI_INITIOLAZTION_MODE_BUSY,
+    WIFI_MODE,
+    WIFI_MODE_Stand_by,
+    NORMAL_MODE,
+    GO_APPLICATION_MODE,
+    WIFI_OK,
+    WIFI_DONE,
+    WIFI_ERROR,
+    STAND_BY_MODE,
+    Sys_OnGoing,
+    Sys_Done,
+    Sys_Faild,
+    SYSTEM_ENABLE_SEQUENCE   ,   
+    OBJECT_FINISHED_SEQUENCE ,   
+    WIFI_FINISHED_SEQUENCE   ,   
+    WIFI_ERROR_SEQUENCE   ,      
+    OBJECT_DATA_LOADED_DONE,
+    OBJECT_DATA_LOADED_ERROR,  
+
+
+}Sys_Modes;
+
 
 #define ECU_NUMBER   MY_ID
 #define MY_ID        HOST_ECU_ID

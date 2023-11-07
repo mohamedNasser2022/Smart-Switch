@@ -69,5 +69,20 @@ typedef struct
 	u8	Size;
 	u32	Queue_Elements[5];
 }Array_Of_Queue_4;
+typedef struct
+{
+	u8	Front;
+	u8	Rear;
+	u8	Size;
+	u8	Queue_Elements[18];
+}Array_Of_Queue_5;
+typedef struct
+{
+	u8	Front;
+	u8	Rear;
+	u8	Size;
+	u16 Size_Of_Last_Poped_Queue;
+	Array_Of_Queue_5	Queue_Elements[12];
+}Nested_Queue_5;
 
 #endif

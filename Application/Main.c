@@ -20,7 +20,7 @@
 
 volatile u8 System_Mode = BOOT_HALT;
 void Polling_Functions_For_System(void);
-
+volatile u32 Tick_Time_Test = 0;
 void main()
 {
 	//RCC_voidInitSystemClock(); /*Rcc Enable*/
@@ -36,7 +36,7 @@ void main()
 	MGPIO_voidSetPinValue(GPIOB,PIN1,0);
 	//4E 6F 75 72 68 61 6E 20 49 20 6C 6F 76 65 20 79 6F 75
 	LCD_SendCommand(0x01);
-	LCD_SendString("4E6F75722049204C6F766520596F75");
+	LCD_SendString("4861626962612049204c6f766520596f75203c33");
 	MGPIO_voidSetPinValue(GPIOB,PIN1,1);
 	//LCD_Sys();
 	while(1);*/
@@ -65,6 +65,7 @@ void main()
 	while(1)
 	{
 		RTE_Polling();
+		Tick_Time_Test++;
 	}
 }
 

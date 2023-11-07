@@ -20,6 +20,7 @@
 static u32 I2C_Time_ms;
 void (*Call_Back)(void*);
 static volatile u8 Local_Requested_Address = 0;
+static volatile u8 Local_Requested_Start_Bit = 0;
 extern  I2C_cf_1;
 
 I2C_Data_Controller I2C_Peripheral_No_1_Handler;
@@ -48,10 +49,7 @@ void I2C_Init(void)
 	I2C_Set_Values();
 	I2C_Initialization_Peripheral_data_Handler();
 	I2C_staticInit(&I2C_cf_1);
-	Queue3_Create(&I2C_Peripheral_No1_Buffer.Data_Queue_Recived);
-	Queue3_Create(&I2C_Peripheral_No1_Buffer.Data_Queue_Send);
-	Nested_Queue3_Create(&I2C_Peripheral_No1_Buffer.Queue_Of_Requests);
-	Queue4_Create(&I2C_Peripheral_No1_Buffer.Function_Pointer);
+
 
 }
 
@@ -106,6 +104,21 @@ static void I2C_TimeOut(void)  /*this function shall return I2C to Ideal Mode*/
 			Peripheral_Montoring.Periheral_Mode = Ideal;
 			break;
 
+		case BUS_REQUEST_GENERATE_START_CONDITIONS:
+			if(
+					I2C_Send_Address_check_Request == I2C_Peripheral_No_1_Handler.Bus_Mode ||
+					I2C_Send_notify_Request == I2C_Peripheral_No_1_Handler.Bus_Mode ||
+					I2C_Read_Request == I2C_Peripheral_No_1_Handler.Bus_Mode
+					)
+			{
+				u8 Local_Error = I2C_Request_Faild;
+				Call_Back(&Local_Error);
+			}
+			Local_Requested_Start_Bit = 0;
+			I2C_Initialization_Peripheral_data_Handler();
+			I2C_Reset(&I2C_cf_1);
+
+			break;
 		case BUS_REQUEST_ADDRESS_PHASE:
 
 			I2C_Peripheral_No_1_Handler.Bus_Status = BUS_REQUEST_GENERATE_STOP_PHASE ;
@@ -157,6 +170,7 @@ static void Set_Bus_Mode_Sequence(I2C_Data_Controller *pointer_to_Buffer)
 		pointer_to_Buffer->Bus_Status = BUS_REQUEST_GENERATE_START_CONDITIONS;
 
 		break;
+
 
 	case BUS_GENERATE_START_CONDITIONS :
 
@@ -273,11 +287,19 @@ static void Generate_Control_Singals(I2C_Data_Controller *pointer_to_Buffer)
 			if( I2C_Read_Request == pointer_to_Buffer->Bus_Mode )
 			{
 				Call_Back(&pointer_to_Buffer->Buffer->Data_Queue_Recived);
+				pointer_to_Buffer->Buffer->Length_of_Data_To_Be_Read = 0;
+				Queue3_Clear(&pointer_to_Buffer->Buffer->Data_Queue_Recived);
 				Call_Back = 0;
 			}
-			else if(I2C_Send_Address_check_Request == pointer_to_Buffer->Bus_Mode || I2C_Send_notify_Request == pointer_to_Buffer->Bus_Mode)
+			else if(I2C_Send_Address_check_Request == pointer_to_Buffer->Bus_Mode  )
 			{
 				u8 Local_Data = I2C_Valid_Address;
+				Call_Back(&Local_Data);
+				Call_Back = (void*)0;
+			}
+			else if(I2C_Send_notify_Request == pointer_to_Buffer->Bus_Mode)
+			{
+				u8 Local_Data = I2C_Request_Done;
 				Call_Back(&Local_Data);
 				Call_Back = (void*)0;
 			}
@@ -410,54 +432,15 @@ u8 I2C_Push_Data_To_Buffer(u8 copy_Mode,u8 copy_u8I2C_ID,u8 copy_u8Address,void*
 	{
 		Queue3_Push(&Local_Queue,Local_Data); /*Push Lenght of reading*/
 	}
-	Nested_Queue3_Push(&Pointer_to_Perpherail_Controller->Buffer->Queue_Of_Requests,&Local_Queue);
-	/*
-
-	if(Queue3_Empty(&Pointer_to_Perpherail_Controller->Buffer->Data_Queue_Recived) ||  I2C_Send_Request == copy_Mode)
+	if(Nested_Queue3_Push(&Pointer_to_Perpherail_Controller->Buffer->Queue_Of_Requests,&Local_Queue))
 	{
-		if(copy_u8I2C_ID == I2C_PERPHEIAL_1 && Pointer_to_Perpherail_Controller->Bus_Mode == BUS_IDEAL )
-		{
 
-			Pointer_to_Perpherail_Controller->Buffer->Address = copy_u8Address ;
-			Pointer_to_Perpherail_Controller->Buffer->Length_of_Data_To_Be_Read = copy_Number_of_bytes_to_Be_Read;
-
-			if(I2C_Send_Request == copy_Mode || I2C_Send_notify_Request == copy_Mode || I2C_Read_Request == copy_Mode)
-			{
-				while(Queue3_Pop(Pointer_to_Data,&Local_Data_Buffer))
-				{
-					Queue3_Push(&Pointer_to_Perpherail_Controller->Buffer->Data_Queue_Send,Local_Data_Buffer);
-				}
-			}
-
-
-			Pointer_to_Perpherail_Controller->Bus_Mode = copy_Mode;
-
-			if(I2C_Read_Request == copy_Mode || I2C_Send_Address_check_Request == copy_Mode || I2C_Send_notify_Request == copy_Mode)
-			{
-				Call_Back = ptr;
-
-			}
-			else
-			{
-
-			}
-
-
-		}
-		else if(copy_u8I2C_ID == I2C_PERPHEIAL_2)
-		{
-
-		}
-		else
-		{
-			Local_Return = I2C_FAILD ;
-		}
 	}
 	else
 	{
-		Local_Return = I2C_FAILD ;
+		Local_Return = I2C_Request_Faild;
 	}
-*/
+
 	return Local_Return;
 }
 /*------------------------------------------------------------------------------------------------------*/
@@ -510,6 +493,77 @@ static void I2C_Make_Request_On_Progress(void)
 		}
 
 	}
+}
+
+static void I2C_Reset(I2C_Configuration_Struct *ptr_I2C)
+{
+	I2C_t *I2C_Register;
+	/*RCC_voidDisableClock(RCC_I2C1);
+	RCC_voidEnableClock(RCC_I2C1);*/
+	I2C_Set_Pointer_Right_Perpherial(&I2C_Register,ptr_I2C->I2C_No);
+	SET_BIT(I2C_Register->I2C_CR1,15);
+	CLR_BIT(I2C_Register->I2C_CR1,15);
+
+	I2C_Register->I2C_OAR1 |= (ptr_I2C->I2C_ADDMODE<<15);
+		I2C_Register->I2C_OAR2 |= (ptr_I2C->I2C_DualMode_ADD);
+
+	#if ADDRESS_MODE == DUAL_ADDRESSES
+		I2C_Register->I2C_OAR2 |= (ptr_I2C->I2C_Address_2<<1);
+	#endif
+
+	#if ADDRESS_LENGTH == BIT10_ADDRESS
+		I2C_Register->I2C_OAR1 |= ptr_I2C->I2C_Address_1;
+	#else
+		I2C_Register->I2C_OAR1 |= (ptr_I2C->I2C_Address_1<<1);
+	#endif
+
+		if(ptr_I2C->I2C_Frequency <= 100000)
+		{
+			// SM mode
+			CLR_BIT(I2C_Register->I2C_CCR,15); // Select Sm Standerd mode
+			I2C_Register->I2C_CR2 |= 10; // Input clock to prepherial is 10 MHZ
+			I2C_Register->I2C_CCR |= ((u32)((I2C_Register->I2C_CR2 & 0x001F)*1000000))/(2*ptr_I2C->I2C_Frequency);
+
+
+		}
+		else
+		{
+			if(ptr_I2C->I2C_Frequency < 400000)
+			{
+				SET_BIT(I2C_Register->I2C_CCR,15); // Select Fm Standerd mode
+				CLR_BIT(I2C_Register->I2C_CCR,14); // Duty set 0
+				I2C_Register->I2C_CR2 |= 8; // Input clock to prepherial is 8 MHZ
+				I2C_Register->I2C_CCR |= ((u32)((I2C_Register->I2C_CR2 & 0x001F)*1000000))/(3*ptr_I2C->I2C_Frequency);
+
+
+			}
+			else
+			{
+				SET_BIT(I2C_Register->I2C_CCR,15); // Select Fm Standerd mode
+				SET_BIT(I2C_Register->I2C_CCR,14); // Duty set 0
+				I2C_Register->I2C_CR2 |= 8; // Input clock to prepherial is 10 MHZ
+				I2C_Register->I2C_CCR |= ((u32)((I2C_Register->I2C_CR2 & 0x001F)*1000000*9))/(25*ptr_I2C->I2C_Frequency);
+
+
+			}
+		}
+
+
+
+
+
+		I2C_Register->I2C_TRISE = 9;
+		SET_BIT(I2C_Register->I2C_CR1,0); // Enable Perherial
+		I2C_Register ->I2C_CR1 |=
+				(ptr_I2C->I2C_Bus_Mode<<1)|
+				(ptr_I2C->I2C_ACK_Enable<<10)|
+				(ptr_I2C->I2C_General_Call_Enable<<6);
+
+		I2C_Register ->I2C_CR2  |=
+				(ptr_I2C->I2C_Interrupt_Enable_Buffer<<10)|
+				(ptr_I2C->I2C_Interrupt_Enable_Event<<9)|
+				(ptr_I2C->I2C_Interrupt_Enable_Error<<8);
+
 }
 
 static u8 I2C_staticInit(I2C_Configuration_Struct *ptr_I2C)
@@ -896,13 +950,13 @@ static u8 I2C_Addressing(I2C_Data_Controller* pointer_to_Buffer)
 
 static u8 I2C_Send_Start_BIT(I2C_Data_Controller* pointer_to_Buffer)
 {
-	static volatile u8 Local_Requested = 0;
+	
 	u8 Local_Return = 0;
 
-	if(0 == Local_Requested)
+	if(0 == Local_Requested_Start_Bit)
 	{
 		SET_BIT(pointer_to_Buffer->I2C_Peripheral_Registers->I2C_CR1,8);
-		Local_Requested = 1;
+		Local_Requested_Start_Bit = 1;
 		Local_Return = I2C_WAITING;
 
 
@@ -910,7 +964,7 @@ static u8 I2C_Send_Start_BIT(I2C_Data_Controller* pointer_to_Buffer)
 	else if(1 == GET_BIT(I2C_1->I2C_SR1,0))
 	{
 		//start bit generated
-		Local_Requested = 0;
+		Local_Requested_Start_Bit = 0;
 		Local_Return = I2C_GENERATED;
 
 	}
@@ -968,6 +1022,8 @@ static void I2C_Initialization_Peripheral_data_Handler(void)
 	I2C_Peripheral_No_1_Handler.I2C_Peripheral_Registers         = I2C_1;
 	Queue3_Create(&I2C_Peripheral_No_1_Handler.Buffer->Data_Queue_Send);
 	Queue3_Create(&I2C_Peripheral_No_1_Handler.Buffer->Data_Queue_Recived);
+	Nested_Queue3_Create(&I2C_Peripheral_No_1_Handler.Buffer->Queue_Of_Requests);
+	Queue4_Create(&I2C_Peripheral_No_1_Handler.Buffer->Function_Pointer);
 
 
 }

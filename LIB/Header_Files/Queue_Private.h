@@ -10,5 +10,7 @@
 #define  QUEUE_ID_3			3
 #define  NESTED_QUEUE_ID_3	3
 #define  QUEUE_ID_4			4
+#define  QUEUE_ID_5			5
+#define  NESTED_QUEUE_ID_5	5
 
 #endif

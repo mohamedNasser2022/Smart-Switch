@@ -16,5 +16,5 @@ static void Notification_Handler_I2C(void* Pointer);
 static u8 EEPROM_Driver_Test_Address(void);
 static void EEPROM_Driver_Write_on_Physical(void);
 static void EEPROM_Erasing_ALL(void);
-
+static void updates_Writing_state_of_each_block(u16 copy_address,u8 copy_status);
 #endif /* MEMORY_STACK_HEADER_FILES_MEMORY_EEPROM_DRIVER_PRIVATE_H_ */

@@ -20,8 +20,8 @@
 
 
 /*------------------------------------------------------------------------------*/
-static void HAL_voidSendObjectsStatusToWifiController_each_10ms(void);
-static void HAL_voidCheckReceving_DataFrom_ComLayer_each_200ms(void);
+static void Runnable_Read_Messages_Status_10ms(void);
+static void Runnable_Read_Messages_1ms(void);
 
 static void Protocol_Translator_Fetch_Data_From_Comunication_Manger_Throw_Rte(void);
 static void Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(u8* Pointer_To_Data,u8 copy_MessageID,u8 copy_Data_Length);

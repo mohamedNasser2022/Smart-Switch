@@ -21,8 +21,9 @@
 #define Rte_ProtocolTranslator_Read_Data_From_Comunication_Manger(POINTER_TO_DATA)  Rte_Read_Port_Comunication_Manger_Protocol_Translator(COMUNICATION_MANGER_AS_SOURCE,POINTER_TO_DATA)
 #define Rte_Comunication_Manger_Read_Data_From_ProtocolTranslator(POINTER_TO_DATA)  Rte_Read_Port_Comunication_Manger_Protocol_Translator(PROTOCOLTRANSLATOR_AS_SOURCE,POINTER_TO_DATA)
 
-
-
+typedef u8 STD_Returns ;
+#define E_OK   1
+#define NOT_OK 0
 
 u8 Rte_Send_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncation_Manger_Interface* Pointer_To_Data);
 u8 Rte_Read_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncation_Manger_Interface_Nested *Pointer_to_Data);
@@ -41,6 +42,19 @@ u8 Rte_Read_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncat
 #define Rte_PortControl_Pin_Read(PIN_ID,POINTER)      Rte_Port_Control_Pins(PIN_READ_LEVEL,PIN_ID,DONT_CARE,DONT_CARE,POINTER)
 #define Rte_PortControl_Pin_Toggle(PIN_ID)            Rte_Port_Control_Pins(PIN_TOGGLE_LEVEL,PIN_ID,DONT_CARE,DONT_CARE,DONT_CARE)
 
+enum{
+	Not_Availabe,
+	Available,
+	Write_Done,
+	Write_Faild,
+	Read_Done,
+	Read_Faild,
+	On_progress,
+	Rte_Load_Done,
+	Rte_Load_Faild,
+};
+
+
 
 u8 Rte_Port_Control_Pins(u8 copy_Command,u8 copy_Pin_ID,u8 copy_Pin_Mode,u8 copy_Pin_Level,u8* pointer_to_Save);
 /*-----------------------------------------------------------------------------------------------*/
@@ -58,25 +72,17 @@ u8 Rte_Port_Control_Pins(u8 copy_Command,u8 copy_Pin_ID,u8 copy_Pin_Mode,u8 copy
 #define WIFI_SEQUENCE_VARIABLE            12
 
 			/*******/
-#define SYSTEM_ENABLE_SEQUENCE      0x01
-#define OBJECT_FINISHED_SEQUENCE    0x02
-#define WIFI_FINISHED_SEQUENCE      0x03
-#define WIFI_ERROR_SEQUENCE         0x04
 
-#define Rte_Write_System_Mode(DATA)													Rte_Compounent_Read_Write_Shared_Data(SYSTEM_MODE,WRITE_MESSAGE,DATA,NULL)
-#define Rte_Read_System_Mode(POINTER)    											Rte_Compounent_Read_Write_Shared_Data(SYSTEM_MODE,READ_MESSAGE,NULL,POINTER)
 
-#define Rte_Write_Object_Finished_WIFI_Seq(DATA)									Rte_Compounent_Read_Write_Shared_Data(OBJECT_FINISHED_WFIFI_INIT,WRITE_MESSAGE,DATA,NULL)
-#define Rte_Read_Object_Finished_WIFI_Seq(POINTER)    								Rte_Compounent_Read_Write_Shared_Data(OBJECT_FINISHED_WFIFI_INIT,READ_MESSAGE,NULL,POINTER)
+u8 Rte_Write_System_Mode(u8* Pointer_Syste_Mode);												
+u8 Rte_Read_System_Mode(u8* Pointer_Syste_Mode) ;  											
 
-#define Rte_Write_WIFI_Sequenc_Variable(DATA)								Rte_Compounent_Read_Write_Shared_Data(WIFI_SEQUENCE_VARIABLE,WRITE_MESSAGE,DATA,NULL)
-#define Rte_Read_WIFI_Sequenc_Variable(POINTER)    						    Rte_Compounent_Read_Write_Shared_Data(WIFI_SEQUENCE_VARIABLE,READ_MESSAGE,NULL,POINTER)
+u8 Rte_Write_WIFI_Sequenc_Variable(u8* Pointer_WIFI_Sequenc_Variable);								
+u8 Rte_Read_WIFI_Sequenc_Variable(u8* Pointer_WIFI_Sequenc_Variable); 						   
 
-#define Rte_Write_Status_ID(DATA)								Rte_Compounent_Read_Write_Shared_Data(STATUS_ECU_ID,WRITE_MESSAGE,DATA,NULL)
-#define Rte_Read_Status_ID(POINTER)    						    Rte_Compounent_Read_Write_Shared_Data(STATUS_ECU_ID,READ_MESSAGE,NULL,POINTER)
+
 /*--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-u8 Rte_Compounent_Read_Write_Shared_Data(u8 copy_ID_Of_Variable,u8 copy_Read_Write,u8 copy_Data,u8* Pointer_to_Get_Data_In);
 
 u8 Rte_Compounent_Read_Write_Shared_Data_Messages(u8 copy_Message_ID,u8 Read_OR_Write,u8* pointer_Data,u8 Number_of_Elments,u8 Reader_Receciver_ID);
 static u8 Rte_Read_Write_Message(u8* source,u8 Read_OR_Write,u8 Number_of_Elments,u8* Destination);

@@ -81,6 +81,7 @@ typedef struct{
 static void I2C_Comunication_Polling(void);
 static void Set_Bus_Mode_Sequence(I2C_Data_Controller *pointer_to_Buffer);
 static void Generate_Control_Singals(I2C_Data_Controller *pointer_to_Buffer);
+static void I2C_Reset(I2C_Configuration_Struct *ptr_I2C);
 static u8 I2C_staticInit(I2C_Configuration_Struct *ptr_I2C);
 static u8 I2C_Set_Pointer_Right_Perpherial(I2C_t **I2C_Register,u8 copy_perpherail_ID);
 static u8 I2C_Reading_DR(I2C_Data_Controller* pointer_to_Buffer);

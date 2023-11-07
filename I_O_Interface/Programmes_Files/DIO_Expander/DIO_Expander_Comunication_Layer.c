@@ -46,6 +46,7 @@ volatile u32 DIO_Expander_System_Time_ms;
 void DIO_Expander_Com_Initialization(void)
 {
 
+	DIO_Registers_Data.RegClock = 0x40;
 	Nested_Queue3_Create(&Buffer_Sending_Data);
 	DIO_Expander_System_Mode.Expander_MODE = Reset;
 	MGPIO_voidSetPinDirection(Hardware_PIN28,OUTPUT_SPEED_2MHZ_PP);
@@ -66,6 +67,7 @@ static void DIO_Reseting(void)
 	static volatile u8 Local_Counter = 0;
 	if(0 == Local_Counter)
 	{
+		Nested_Queue3_Clear(&Buffer_Sending_Data);
 		MGPIO_voidSetPinValue(Hardware_PIN28,1);
 		Local_Counter++;
 	}
@@ -73,6 +75,33 @@ static void DIO_Reseting(void)
 	{
 		MGPIO_voidSetPinValue(Hardware_PIN28,0);
 		Local_Counter = 0;
+		Array_Of_Queue_3  Local_Data;
+		Queue3_Create(&Local_Data);
+
+		Queue3_Push(&Local_Data,Address_RegClock);
+		Queue3_Push(&Local_Data,DIO_Registers_Data.RegClock);
+		if(Nested_Queue3_Full(&Buffer_Sending_Data) != 1)
+		{
+			Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
+		}
+
+		Queue3_Push(&Local_Data,Address_RegDirB);
+		Queue3_Push(&Local_Data,DIO_Registers_Data.RegDirB);
+		Queue3_Push(&Local_Data,DIO_Registers_Data.RegDirA);
+
+		if(Nested_Queue3_Full(&Buffer_Sending_Data) != 1)
+		{
+			Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
+		}
+
+		Queue3_Push(&Local_Data,Address_RegDataB);
+		Queue3_Push(&Local_Data,DIO_Registers_Data.RegDataB);
+		Queue3_Push(&Local_Data,DIO_Registers_Data.RegDataA);
+
+		if(Nested_Queue3_Full(&Buffer_Sending_Data) != 1)
+		{
+			Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
+		}
 		DIO_Expander_System_Mode.Expander_MODE = Normal;
 	}
 
@@ -88,7 +117,7 @@ void DIO_Expander_Com_Time(void)
 	{
 		if(DIO_Expander_System_Time_ms % 10 == 0)
 		{
-			Request_of_Reading(Address_RegDataB,25);
+			Request_of_Reading(Address_RegInputDisableB,37);
 		}
 	}
 	else if(Reset == DIO_Expander_System_Mode.Expander_MODE)
@@ -106,12 +135,20 @@ static void DIO_Expander_Com_Check_If_Updates_Needed(void)
 {
 	Array_Of_Queue_3  Local_Data;
 	Queue3_Create(&Local_Data);
-//	Local_Data.Address =  DIO_Expander_ADDRESS;   // push Addresses here
+	//	Local_Data.Address =  DIO_Expander_ADDRESS;   // push Addresses here
 
 	if(Flags.Flag_Updates != NO_UPDATES_NEEDED)
 	{
 		if(UPDATES_NEEDED == Flags.Flags_Update_Bit_Level.Set_Direction_Called)
 		{
+			/* For Set Clocl edge*/
+			Queue3_Push(&Local_Data,Address_RegClock);
+			Queue3_Push(&Local_Data,DIO_Registers_Data.RegClock);
+			if(Nested_Queue3_Full(&Buffer_Sending_Data) != 1)
+			{
+				Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
+			}
+
 
 			Queue3_Push(&Local_Data,Address_RegDirB);
 			Queue3_Push(&Local_Data,DIO_Registers_Data.RegDirB);
@@ -130,6 +167,19 @@ static void DIO_Expander_Com_Check_If_Updates_Needed(void)
 			{
 				Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
 			}
+
+			/* For Set rising edge*/
+			Queue3_Push(&Local_Data,Address_RegSenseHighB);
+			Queue3_Push(&Local_Data,DIO_Registers_Data.RegSenseHighB);
+			Queue3_Push(&Local_Data,DIO_Registers_Data.RegSenseLowB);
+			Queue3_Push(&Local_Data,DIO_Registers_Data.RegSenseHighA);
+			Queue3_Push(&Local_Data,DIO_Registers_Data.RegSenseLowA);
+
+			if(Nested_Queue3_Full(&Buffer_Sending_Data) != 1)
+			{
+				Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
+			}
+
 			Flags.Flags_Update_Bit_Level.Set_Direction_Called = NO_UPDATES_NEEDED;
 		}
 		if(UPDATES_NEEDED == Flags.Flags_Update_Bit_Level.Set_Pin_Level_Called)
@@ -224,13 +274,24 @@ static void Notification_Handler_I2C(void* ptr)
 	u8 Local_Data ;
 	if(1 == DIO_Expander_Reading_Controller.Reading_On_Going)
 	{
-		while(Queue3_Pop(ptr,&Local_Data))
+		if(*((u8*)ptr) == I2C_Request_Faild)
 		{
-			*DIO_Expander_Reading_Controller.Read_Pointer = Local_Data;
+			DIO_Expander_Reading_Controller.Reading_On_Going = 0;
+			DIO_Expander_System_Mode.Expander_MODE = Reset;
 
-			DIO_Expander_Reading_Controller.Read_Pointer++;
 		}
-		DIO_Expander_Reading_Controller.Reading_On_Going = 0;
+		else
+		{
+			while(Queue3_Pop(ptr,&Local_Data))
+			{
+				*DIO_Expander_Reading_Controller.Read_Pointer = Local_Data;
+
+				DIO_Expander_Reading_Controller.Read_Pointer++;
+			}
+			DIO_Expander_Reading_Controller.Reading_On_Going = 0;
+
+		}
+
 	}
 	else
 	{

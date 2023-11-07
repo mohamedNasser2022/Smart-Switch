@@ -16,6 +16,8 @@ typedef Nested_Queue_2		Queue_Of_Message_Data_1_Nested;
 typedef Array_Of_Queue_3		Uart_Buffer;
 typedef Nested_Queue_3		Uart_Buffer_Nested;
 typedef Array_Of_Queue_4		Function_Pointer;
+typedef Array_Of_Queue_5		EEPROM_Pages_Queue;
+typedef Nested_Queue_5		EEPROM_Pages_Queue_Nested;
 
 #define Queue0_Create(QUEUE_POINTER)			General_Queue_Create(QUEUE_ID_0,QUEUE_POINTER)
 #define Queue0_Clear(QUEUE_POINTER)			General_Queue_Clear(QUEUE_ID_0,QUEUE_POINTER)
@@ -62,6 +64,15 @@ typedef Array_Of_Queue_4		Function_Pointer;
 #define Queue4_Size(QUEUE_POINTER)			General_Queue_Size(QUEUE_ID_4,QUEUE_POINTER)
 #define Queue4_Undo_Last_Pop(QUEUE_POINTER)			General_Queue_Undo_Last_Pop(NESTED_QUEUE_ID_4,QUEUE_POINTER)
 
+#define Queue5_Create(QUEUE_POINTER)			General_Queue_Create(QUEUE_ID_5,QUEUE_POINTER)
+#define Queue5_Clear(QUEUE_POINTER)			General_Queue_Clear(QUEUE_ID_5,QUEUE_POINTER)
+#define Queue5_Push(QUEUE_POINTER,DATA)			General_Queue_Push(QUEUE_ID_5,QUEUE_POINTER,DATA)
+#define Queue5_Pop(QUEUE_POINTER,POINTER_DATA)			General_Queue_Pop(QUEUE_ID_5,QUEUE_POINTER,POINTER_DATA)
+#define Queue5_Empty(QUEUE_POINTER)			General_Queue_Is_Empty(QUEUE_ID_5,QUEUE_POINTER)
+#define Queue5_Full(QUEUE_POINTER)			General_Queue_Is_Full(QUEUE_ID_5,QUEUE_POINTER)
+#define Queue5_Size(QUEUE_POINTER)			General_Queue_Size(QUEUE_ID_5,QUEUE_POINTER)
+#define Queue5_Undo_Last_Pop(QUEUE_POINTER)			General_Queue_Undo_Last_Pop(NESTED_QUEUE_ID_5,QUEUE_POINTER)
+
 
 /*---------------------------------------------------------*/ 
 #define Nested_Queue0_Create(QUEUE_POINTER)			General_Nested_Queue_Create(NESTED_QUEUE_ID_0,QUEUE_POINTER)
@@ -99,6 +110,15 @@ typedef Array_Of_Queue_4		Function_Pointer;
 #define Nested_Queue3_Full(QUEUE_POINTER)			General_Nested_Queue_Is_Full(NESTED_QUEUE_ID_3,QUEUE_POINTER)
 #define Nested_Queue3_Size(QUEUE_POINTER)			General_Nested_Queue_Size(NESTED_QUEUE_ID_3,QUEUE_POINTER)
 #define Nested_Queue3_Undo_Last_Pop(QUEUE_POINTER)			General_Nested_Queue_Undo_Last_Pop(NESTED_QUEUE_ID_3,QUEUE_POINTER)
+
+#define Nested_Queue5_Create(QUEUE_POINTER)			General_Nested_Queue_Create(NESTED_QUEUE_ID_5,QUEUE_POINTER)
+#define Nested_Queue5_Clear(QUEUE_POINTER)			General_Nested_Queue_Clear(NESTED_QUEUE_ID_5,QUEUE_POINTER)
+#define Nested_Queue5_Push(QUEUE_POINTER,DATA)			General_Nested_Queue_Push(NESTED_QUEUE_ID_5,QUEUE_POINTER,DATA)
+#define Nested_Queue5_Pop(QUEUE_POINTER,POINTER_DATA)			General_Nested_Queue_Pop(NESTED_QUEUE_ID_5,QUEUE_POINTER,POINTER_DATA)
+#define Nested_Queue5_Empty(QUEUE_POINTER)			General_Nested_Queue_Is_Empty(NESTED_QUEUE_ID_5,QUEUE_POINTER)
+#define Nested_Queue5_Full(QUEUE_POINTER)			General_Nested_Queue_Is_Full(NESTED_QUEUE_ID_5,QUEUE_POINTER)
+#define Nested_Queue5_Size(QUEUE_POINTER)			General_Nested_Queue_Size(NESTED_QUEUE_ID_5,QUEUE_POINTER)
+#define Nested_Queue5_Undo_Last_Pop(QUEUE_POINTER)			General_Nested_Queue_Undo_Last_Pop(NESTED_QUEUE_ID_5,QUEUE_POINTER)
 
 void General_Queue_Create(u8 Queue_ID,void *Queue_Pointer);
 void General_Queue_Clear(u8 Queue_ID,void *Queue_Pointer);

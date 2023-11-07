@@ -14,15 +14,20 @@
 #include"DIO_Expander_Interface.h"
 #include"DIO_interface.h"
 
-#include "Input_Output_Private.h"
+#include"Input_Output_Private.h"
 #include"Input_Output_Configuration.h"
 #include"Input_Output_Interface.h"
+
+#define INTERNAL_DIO   0x0B
+#define EXTERNAL_DIO   0x0A
+
 
 struct
 {
 	u8 Access_request:1;
 	u8 PIN_ID;
 	u8 PORT;
+	u8 Location;
 }I_O_Controller;
 
 
@@ -52,31 +57,21 @@ u8 I_O_Interface_Init_Pin(u8 copy_Pin_ID,u8 copy_Pin_Mode)
 	if(I_O_Controller.Access_request == 0)
 	{
 		I_O_Controller.Access_request = 1;
-
-		if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_ON_BOARD )
+		
+		if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
 		{
-
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			if(I_O_Controller.Location == INTERNAL_DIO)
 			{
 				MGPIO_voidSetPinDirection(I_O_Controller.PORT,I_O_Controller.PIN_ID,copy_Pin_Mode);
 			}
-			else
-			{
-				Local_Return = 0;
-			}
-
-		}
-		else if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_EXPANDER_BOARD)
-		{
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			else if(I_O_Controller.Location == EXTERNAL_DIO)
 			{
 				DIO_Expander_Set_Pin_Mode(I_O_Controller.PIN_ID,copy_Pin_Mode);
 			}
 			else
 			{
-				Local_Return = 0;
-			}
 
+			}
 		}
 		else
 		{
@@ -88,8 +83,6 @@ u8 I_O_Interface_Init_Pin(u8 copy_Pin_ID,u8 copy_Pin_Mode)
 	{
 		Local_Return = 0;
 	}
-
-
 	return Local_Return;
 }
 
@@ -102,33 +95,21 @@ u8 I_O_Interface_set_Pin_Level(u8 copy_Pin_ID,u8 copy_Pin_Level)
 	if(I_O_Controller.Access_request == 0)
 	{
 		I_O_Controller.Access_request = 1;
-
-		if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_ON_BOARD )
+		
+		if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
 		{
-
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			if(I_O_Controller.Location == INTERNAL_DIO)
 			{
-				MGPIO_voidSetPinValue(I_O_Controller.PORT,I_O_Controller.PIN_ID,copy_Pin_Level);
+					MGPIO_voidSetPinValue(I_O_Controller.PORT,I_O_Controller.PIN_ID,copy_Pin_Level);
 			}
-			else
-			{
-				Local_Return = 0;
-			}
-
-
-
-		}
-		else if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_EXPANDER_BOARD)
-		{
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			else if(I_O_Controller.Location == EXTERNAL_DIO)
 			{
 				DIO_Expander_Set_Pin_Level(I_O_Controller.PIN_ID,copy_Pin_Level);
 			}
 			else
 			{
-				Local_Return = 0;
-			}
 
+			}
 		}
 		else
 		{
@@ -140,47 +121,32 @@ u8 I_O_Interface_set_Pin_Level(u8 copy_Pin_ID,u8 copy_Pin_Level)
 	{
 		Local_Return = 0;
 	}
-
-
 	return Local_Return;
 }
 
 
 u8 I_O_Interface_Read_Pin_Level(u8 copy_Pin_ID,u8* Location_of_Pin_State_Level_Save)
 {
-
 	u8 Local_Return = 1;
 
 	if(I_O_Controller.Access_request == 0)
 	{
 		I_O_Controller.Access_request = 1;
-
-		if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_ON_BOARD )
+		
+		if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
 		{
-
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			if(I_O_Controller.Location == INTERNAL_DIO)
 			{
 				*Location_of_Pin_State_Level_Save = MGPIO_u8GetPinValue(I_O_Controller.PORT,I_O_Controller.PIN_ID);
 			}
-			else
-			{
-				Local_Return = 0;
-			}
-
-
-
-		}
-		else if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_EXPANDER_BOARD)
-		{
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			else if(I_O_Controller.Location == EXTERNAL_DIO)
 			{
 				*Location_of_Pin_State_Level_Save	= DIO_Expander_Read_Pin(I_O_Controller.PIN_ID);
 			}
 			else
 			{
-				Local_Return = 0;
-			}
 
+			}
 		}
 		else
 		{
@@ -192,9 +158,8 @@ u8 I_O_Interface_Read_Pin_Level(u8 copy_Pin_ID,u8* Location_of_Pin_State_Level_S
 	{
 		Local_Return = 0;
 	}
-
-
 	return Local_Return;
+
 }
 
 u8 I_O_Interface_Toggle_Pin(u8 copy_Pin_ID)
@@ -204,29 +169,21 @@ u8 I_O_Interface_Toggle_Pin(u8 copy_Pin_ID)
 	if(I_O_Controller.Access_request == 0)
 	{
 		I_O_Controller.Access_request = 1;
-
-		if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_ON_BOARD )
+		
+		if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
 		{
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			if(I_O_Controller.Location == INTERNAL_DIO)
 			{
 				MGPIO_voidTogglePin(I_O_Controller.PORT,I_O_Controller.PIN_ID);
 			}
-			else
-			{
-				Local_Return = 0;
-			}
-		}
-		else if(copy_Pin_ID <= MAX_NUMBER_OF_DIO_EXPANDER_BOARD)
-		{
-			if(IO_Hardware_Switching_on_Input_Number(copy_Pin_ID))
+			else if(I_O_Controller.Location == EXTERNAL_DIO)
 			{
 				DIO_Expander_Toggle(I_O_Controller.PIN_ID);
 			}
 			else
 			{
-				Local_Return = 0;
-			}
 
+			}
 		}
 		else
 		{
@@ -239,6 +196,8 @@ u8 I_O_Interface_Toggle_Pin(u8 copy_Pin_ID)
 		Local_Return = 0;
 	}
 	return Local_Return;
+	
+
 }
 
 static u8 IO_Hardware_Switching_on_Input_Number(u8 copy_Pin_ID)
@@ -288,12 +247,23 @@ static u8 IO_Hardware_Switching_on_Input_Number(u8 copy_Pin_ID)
 		case VIRTUAL_PIN_13:
 			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_13_DIO_PHYSICAL);
 		break;
+		default:
+		Local_Return = 0;
+		break;
 		}
 	return Local_Return;
 }
 
 static void Splite_into_ports_and_Pins(u8 copy_Port,u8 copy_ID)
 {
+	if(copy_Port == PORTS_DONT_CARE)
+	{
+		I_O_Controller.Location = EXTERNAL_DIO;
+	}
+	else
+	{
+		I_O_Controller.Location = INTERNAL_DIO;
+	}
 	I_O_Controller.PIN_ID = copy_ID;
 	I_O_Controller.PORT = copy_Port;
 }

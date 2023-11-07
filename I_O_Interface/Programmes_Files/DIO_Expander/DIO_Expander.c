@@ -98,15 +98,16 @@ void DIO_Expander_Set_Pin_Mode(u8 Pin_No,u8 Mode)
 	{
 	case DIO_Expander_INPUT_FLOAT :
 
-		if(Pin_No >= 7)
+		if(Pin_No <= 7)
 		{
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirA,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableA,Pin_No,EXPANDER_INPUT);
 		}
-		else if(Pin_No >= 15)
+		else if(Pin_No <= 15)
 		{
+			Pin_No -=8;
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirB,Pin_No,EXPANDER_INPUT);
-			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableB,Pin_No,EXPANDER_INPUT);
+			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableB,Pin_No-8,EXPANDER_INPUT);
 		}
 		else
 		{
@@ -116,14 +117,15 @@ void DIO_Expander_Set_Pin_Mode(u8 Pin_No,u8 Mode)
 
 	case DIO_Expander_INPUT_PULL_UP :
 
-		if(Pin_No >= 7)
+		if(Pin_No <= 7)
 		{
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirA,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableA,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegPullUpA,Pin_No,EXPANDER_ENABLE);
 		}
-		else if(Pin_No >= 15)
+		else if(Pin_No <= 15)
 		{
+			Pin_No -=8;
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirB,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableB,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegPullUpB,Pin_No,EXPANDER_ENABLE);
@@ -136,14 +138,15 @@ void DIO_Expander_Set_Pin_Mode(u8 Pin_No,u8 Mode)
 
 	case DIO_Expander_INPUT_PULL_DOWN :
 
-		if(Pin_No >= 7)
+		if(Pin_No <= 7)
 		{
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirA,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableA,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegPullDownA,Pin_No,EXPANDER_ENABLE);
 		}
-		else if(Pin_No >= 15)
+		else if(Pin_No <= 15)
 		{
+			Pin_No -=8;
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirB,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDebounceEnableB,Pin_No,EXPANDER_INPUT);
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegPullDownB,Pin_No,EXPANDER_ENABLE);
@@ -157,12 +160,13 @@ void DIO_Expander_Set_Pin_Mode(u8 Pin_No,u8 Mode)
 
 	case DIO_Expander_OUPUT :
 
-		if(Pin_No >= 7)
+		if(Pin_No <= 7)
 		{
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirA,Pin_No,EXPANDER_OUTPUT);
 		}
-		else if(Pin_No >= 15)
+		else if(Pin_No <= 15)
 		{
+			Pin_No -=8;
 			Special_Function_To_SET_CLR(&DIO_Registers_Data.RegDirB,Pin_No,EXPANDER_OUTPUT);
 		}
 		else
@@ -171,11 +175,11 @@ void DIO_Expander_Set_Pin_Mode(u8 Pin_No,u8 Mode)
 		}
 		break;
 	case DIO_Expander_Open_Drain :
-		if(Pin_No >= 7)
+		if(Pin_No <= 7)
 		{
 
 		}
-		else if(Pin_No >= 15)
+		else if(Pin_No <= 15)
 		{
 
 		}

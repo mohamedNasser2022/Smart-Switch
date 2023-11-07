@@ -8,13 +8,831 @@
 
 #include"BIT_MATH.h"
 #include"STD_TYPES.h"
+#include"EEPROM_Driver_Interface.h"
+
+#include"Rte_Nvm_STD.h"
+
+#include "Mem_Abstraction_Config.h"
+#include "Mem_Abstraction_Interface.h"
+#include "Mem_Abstraction_Private.h"
+
+volatile static u32 MemIf_Time_ms = 0;
+
+/*****************************************************************/
+
+struct 
+{
+	u8 Number_Of_Blocks;
+	u8 EEPROM_Status;
+	u8 Reserved[12];
+	u16 Check_Sum_Nvm_Manger_Data;
+}Nvm_Manger_Data;
+
+struct 
+{
+	u8 Module_Mode;
+	u8 current_Mode_Status;
 
 
-//#include "Mem_Abstraction_Config.h"
-//#include "Mem_Abstraction_Interface.h"
-//#include "Mem_Abstraction_Private.h"
+}MemIf_Controller;
+
+enum{
+
+	MemIf_Undefined,
+	MemIf_Initialization,
+	MemIf_OnGoing,
+	MemIf_Done,
+	MemIf_Reading,
+	MemIf_Writing,
+	MemIf_Stand_by,
+	MemIf_Erasing,
+	MemIf_Normal,
+	MemIf_Busy,
+	MemIf_Ok,
+
+}Modes;
+
+enum{
+
+	Virgin = 0x60,
+	On_Using = 0x70,
+
+}EEPROM_Status;
+
+
+/*****************************************************************/
+
+enum{
+
+	Writing_Undefined,
+	Writing_Needed,
+	Writing_On_Going,
+	Writing_Done,
+	Writing_Faild,
+
+}Writing_Enum;
+
+/***************************Nvm Blocks******************/
+
+static struct 
+{
+	u8 Block_Type;
+	u8 writing_Counter;
+	Idt_Rec001_FD00 Rec001_copy_FD00;
+	u16 Block_Check_Sum;
+	u8 Write_Status;
+
+}Nvm_Descriptor_Rec001_FD00;
+
+static struct 
+{
+	u8 Block_Type;
+	u8 writing_Counter;
+	Idt_Rec002_FD01 Rec002_copy_FD01;
+	u16 Block_Check_Sum ;
+	u8 Write_Status;
+
+}Nvm_Descriptor_Rec002_FD01;
+
+static struct 
+{
+	u8 Block_Type;
+	u8 writing_Counter;
+	u8 Block_Time_1count_30sec;
+	u8 Writing_Enable:1;
+	Idt_Rec003_FD02 Rec003_copy_FD02;
+	u16 Block_Check_Sum ;
+	u8 Write_Status;
+
+}Nvm_Descriptor_Rec003_FD02;
+
+static struct 
+{
+	u8 Block_Type;
+	u8 writing_Counter;
+	u8 Block_Time_1count_30sec;
+	u8 Writing_Enable:1;
+	Idt_Rec004_FD03 Rec004_copy_FD03;
+	u16 Block_Check_Sum ;
+	u8 Write_Status;
+
+}Nvm_Descriptor_Rec004_FD03;
+
+
+/*******************************************************/
+
+
+
+void MemIf_Init(void)
+{
+	EEPROM_Driver_Initialization();
+	MemIf_Controller.Module_Mode = MemIf_Initialization;
+	MemIf_Controller.current_Mode_Status = MemIf_Undefined;
+
+
+
+}
+
+void MemIf_Polling(void)
+{
+	EEPROM_Driver_Polling();
+}
+
+volatile u8 Control_test = 1;
+
+void MemIf_Time(void)
+{
+	MemIf_Time_ms++;
+
+	if(Control_test == 1)
+	{
+		MemIF_Module_Modes_Switching();
+	}
+	else if(Control_test == 2)
+	{
+		if(On_Progress == EEPROM_Driver_Erasing_All())
+		{
+			MemIf_Controller.Module_Mode = MemIf_Erasing;
+		}
+
+	}
+
+}
+
+/*-------------------------- Static Functions ---------------------------*/
+
+static void MemIF_Module_Modes_Switching(void)
+{
+	switch (MemIf_Controller.Module_Mode)
+	{
+	case MemIf_Initialization:
+
+		if(MemIf_Undefined == MemIf_Controller.current_Mode_Status)
+		{
+			if(On_Progress == EEPROM_Driver_Read(128,16,Notification_Handler_Physical_Layer))
+			{
+				MemIf_Controller.current_Mode_Status = MemIf_OnGoing;
+			}
+		}
+		else if(MemIf_Controller.current_Mode_Status == MemIf_Done)
+		{
+			if(On_Using != Nvm_Manger_Data.EEPROM_Status)
+			{
+				Nvm_Manger_Data.EEPROM_Status = Virgin;
+				MemIf_Controller.Module_Mode = Virgin;
+			}
+			else
+			{
+				MemIf_Controller.Module_Mode = MemIf_Reading;
+			}
+
+			MemIf_Controller.current_Mode_Status = MemIf_Undefined;
+
+
+		}
+
+
+		break;
+
+	case MemIf_Reading:
+
+		/*Loading All Data From Nvm*/
+		if(MemIf_Controller.current_Mode_Status == MemIf_Undefined)
+		{
+			if(MemIf_Ok == MemIf_Nvm_Read_All())
+			{
+				MemIf_Controller.current_Mode_Status = MemIf_OnGoing;
+			}
+
+		}
+		else if(MemIf_Controller.current_Mode_Status == MemIf_Done)
+		{
+			MemIf_Runnable_Writing_to_Rte();
+			MemIf_Controller.Module_Mode = MemIf_Normal;
+			MemIf_Controller.current_Mode_Status = MemIf_Undefined;
+		}
 
 
 
 
+		break;
 
+	case Virgin:
+
+		MemIf_Write_Nvm_Manger_Data();
+		MemIf_Loadong_Default_Valus_Rec001();
+		MemIf_Loadong_Default_Valus_Rec002();
+		MemIf_Loadong_Default_Valus_Rec003();
+
+
+
+		MemIf_Controller.Module_Mode = MemIf_Normal;
+
+
+
+		break;
+
+	case MemIf_Normal:
+
+		MemIf_Running_Normally();
+		MemIf_Faults_detections();
+		MemIf_Runnable_Reading_From_Rte();
+
+		if(MemIf_Time_ms % 30000 == 0)
+		{
+			MemIf_Update_Writing_Enable();
+		}
+
+		break;
+
+	case MemIf_Stand_by:
+
+		break;
+
+	default:
+
+
+		break;
+	}
+
+
+
+}
+
+static void MemIf_Runnable_Writing_to_Rte(void)
+{
+	Rte_Nvm_Write_FD00(&Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00);
+	Rte_Nvm_Write_FD01(&Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01);
+	Rte_Nvm_Write_FD02(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02);
+	Rte_Nvm_Write_FD03(&Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03);
+}
+
+static void MemIf_Runnable_Reading_From_Rte(void)
+{
+	u16 Local_Check_sum = 0;
+	Rte_Read_FD00(&Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00);
+	Rte_Read_FD01(&Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01);
+	Rte_Read_FD02(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02);
+	Rte_Read_FD02(&Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03);
+
+	/*Calculate Check sum of reading to check if writing is needed */
+
+	if(Check_Sum_calculator(&Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Hardware_Version,6,1) != Nvm_Descriptor_Rec001_FD00.Block_Check_Sum)
+	{
+		Nvm_Descriptor_Rec001_FD00.Write_Status = Writing_Needed;
+	}
+	if(Check_Sum_calculator(&Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Relays_On_Syetem,4,1) != Nvm_Descriptor_Rec002_FD01.Block_Check_Sum)
+	{
+		Nvm_Descriptor_Rec002_FD01.Write_Status = Writing_Needed;
+	}
+	if(Check_Sum_calculator(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0],8,1) != Nvm_Descriptor_Rec003_FD02.Block_Check_Sum)
+	{
+		Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_Needed;
+	}
+	if(Check_Sum_calculator(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0],8,1) != Nvm_Descriptor_Rec003_FD02.Block_Check_Sum)
+	{
+		Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_Needed;
+	}
+
+
+}
+
+static void MemIf_Running_Normally(void)
+{
+	/*-----------------Trigger Writing-------------------------*/
+
+	if(Writing_Needed == Nvm_Descriptor_Rec001_FD00.Write_Status)
+	{
+		MemIf_Write_Rec001();
+	}
+	if(Writing_Needed == Nvm_Descriptor_Rec002_FD01.Write_Status)
+	{
+		MemIf_Write_Rec002();
+	}
+	if(Writing_Needed == Nvm_Descriptor_Rec003_FD02.Write_Status)
+	{
+		if(1 == Nvm_Descriptor_Rec003_FD02.Writing_Enable)
+		{
+			MemIf_Write_Rec003();
+			Nvm_Descriptor_Rec003_FD02.Writing_Enable = 0;
+		}
+
+	}
+	if(Writing_Needed == Nvm_Descriptor_Rec004_FD03.Write_Status)
+	{
+		if(1 == Nvm_Descriptor_Rec004_FD03.Writing_Enable)
+		{
+			MemIf_Write_Rec004();
+			Nvm_Descriptor_Rec004_FD03.Writing_Enable = 0;
+		}
+
+	}
+
+}
+
+static void MemIf_Faults_detections(void)
+{
+	/*Check if any faults happen on writing blocks*/
+	if(Writing_Faild == Nvm_Descriptor_Rec001_FD00.Write_Status)
+	{
+
+	}
+	if(Writing_Faild == Nvm_Descriptor_Rec001_FD00.Write_Status)
+	{
+
+	}
+	if(Writing_Faild == Nvm_Descriptor_Rec001_FD00.Write_Status)
+	{
+
+	}
+
+}
+static void MemIf_Update_Writing_Enable(void)
+{
+	/*called each 30 seconds*/
+	if(0 == Nvm_Descriptor_Rec003_FD02.Writing_Enable)
+	{
+		Nvm_Descriptor_Rec003_FD02.Block_Time_1count_30sec ++;
+		if(2 == Nvm_Descriptor_Rec003_FD02.Block_Time_1count_30sec)
+		{
+			Nvm_Descriptor_Rec003_FD02.Writing_Enable = 1;
+			Nvm_Descriptor_Rec003_FD02.Block_Time_1count_30sec = 0;
+
+		}
+
+	}
+
+}
+static void updates_Writing_state_of_each_block(u16 copy_address,u8 copy_status)
+{
+	switch (copy_address)
+	{
+	case 3:
+
+		if( OK_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec001_FD00.Write_Status = Writing_Done;
+			Rte_Nvm_Write_FD00(&Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00);
+		}
+		else if(Faild_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec001_FD00.Write_Status = Writing_Faild;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec001_FD00.Write_Status = Writing_Undefined;
+		}
+
+		break;
+
+	case 11:
+
+		if( OK_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec002_FD01.Write_Status = Writing_Done;
+			Rte_Nvm_Write_FD01(&Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01);
+		}
+		else if(Faild_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec002_FD01.Write_Status = Writing_Faild;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec002_FD01.Write_Status = Writing_Undefined;
+		}
+		break;
+
+	case 17:
+
+		if( OK_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_Done;
+			Rte_Nvm_Write_FD02(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02);
+		}
+		else if(Faild_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_Faild;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_Undefined;
+		}
+
+		break;
+
+	case 27:
+
+		if( OK_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec004_FD03.Write_Status = Writing_Done;
+			Rte_Nvm_Write_FD03(&Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03);
+		}
+		else if(Faild_EEPROM == copy_status)
+		{
+			Nvm_Descriptor_Rec004_FD03.Write_Status = Writing_Faild;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec004_FD03.Write_Status = Writing_Undefined;
+		}
+
+		break;
+
+	default:
+		break;
+	}
+
+}
+
+static void Notification_Handler_Physical_Layer(void* Modes,void* Pointer)
+{
+	volatile u16 Local_Address = 0;
+	volatile u16 Local_State = 0;
+
+	switch (*((u8*)Modes))
+	{
+	case Reading:
+
+		if(MemIf_Initialization == MemIf_Controller.Module_Mode)
+		{
+			MemIf_Loading_Nvm_Manger_Data(Pointer);
+			MemIf_Controller.current_Mode_Status = MemIf_Done;
+		}
+		else
+		{
+			MemIf_Loading_Blocks(Pointer);
+
+			MemIf_Controller.current_Mode_Status = MemIf_Done;
+		}
+
+
+		break;
+
+	case Writing:
+
+		Local_Address = *((u16*)Pointer);
+		Local_State   = *(((u16*)Pointer)+1);
+
+		updates_Writing_state_of_each_block(Local_Address,Local_State);
+
+		break;
+
+	default:
+		break;
+	}
+
+}
+
+static void MemIf_Loading_Blocks(void *Pointer)
+{
+	u8 Local_Data = 0;
+	u8 *Local_Pointer = &Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Hardware_Version;
+	u8 Block_Counter = 0;
+	volatile u8 i = 0;
+
+	for( i = 0 ; i < 6 ; i++) // Data loading
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+	Local_Pointer = &Nvm_Descriptor_Rec001_FD00.Block_Check_Sum;
+
+	for( i = 0 ; i < 2 ; i++) // CheckSum loading
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+
+
+	Local_Pointer = &Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Relays_On_Syetem;
+
+	for( i = 0 ; i < 4 ; i++)
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+	Local_Pointer = &Nvm_Descriptor_Rec002_FD01.Block_Check_Sum;
+
+	for( i = 0 ; i < 2 ; i++) // CheckSum loading
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+	Local_Pointer = &Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0];
+
+	for( i = 0 ; i < 8 ; i++)
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+	Local_Pointer = &Nvm_Descriptor_Rec003_FD02.Block_Check_Sum;
+
+	for( i = 0 ; i < 2 ; i++) // CheckSum loading
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+	Local_Pointer = &Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[0];
+
+	for( i = 0 ; i < 8 ; i++)
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+	Local_Pointer = &Nvm_Descriptor_Rec004_FD03.Block_Check_Sum;
+
+	for( i = 0 ; i < 2 ; i++) // CheckSum loading
+	{
+		if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+		{
+			*(Local_Pointer + i) = Local_Data;
+		}
+		else
+		{
+			MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+			break;
+		}
+	}
+
+}
+
+static void MemIf_Write_Nvm_Manger_Data(void) 
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = &Nvm_Manger_Data.Number_Of_Blocks;
+	Nvm_Manger_Data.Number_Of_Blocks = 3;
+	Nvm_Manger_Data.EEPROM_Status = On_Using;
+
+	Nvm_Manger_Data.Check_Sum_Nvm_Manger_Data =  Check_Sum_calculator(&Nvm_Manger_Data.Number_Of_Blocks,14,1);
+
+	for(u8 i = 0 ; i < 14; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec001_FD00.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec001_FD00.Block_Check_Sum>>8));
+
+	EEPROM_Driver_Write(128,&Local_Queue_IF);
+
+
+}
+
+static void MemIf_Loading_Nvm_Manger_Data(void *Pointer) /* load data from EERPOM*/
+{
+	u8 Local_Data = 0;
+	u8 *Local_Pointer = &Nvm_Manger_Data.Number_Of_Blocks;
+	u8 Counter = 0;
+	while(EEPROM_Queue_Pop(Pointer,&Local_Data))
+	{
+		*(Local_Pointer + Counter) = Local_Data;
+		Counter++;
+	}
+
+}
+
+static u8 MemIf_Nvm_Read_All(void)
+{
+	u8 Local_Return = MemIf_Ok;
+
+	if(On_Progress == EEPROM_Driver_Read(3,34,Notification_Handler_Physical_Layer))
+	{
+
+	}
+	else
+	{
+		Local_Return = MemIf_Busy;
+	}
+	return Local_Return;
+}
+
+static void MemIf_Loadong_Default_Valus_Rec001(void)
+{
+	Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Hardware_Version = 0x06;
+	Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Host_Software_Version = 0x09;
+	Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.WIFI_Software_Version = 0x09;
+	Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Reserved[0] = 0;
+	Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Reserved[1] = 0;
+	Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Reserved[2] = 0;
+
+	Nvm_Descriptor_Rec001_FD00.Block_Check_Sum =  Check_Sum_calculator(&Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Hardware_Version,6,1);
+
+	Nvm_Descriptor_Rec001_FD00.Write_Status = Writing_Needed;
+}
+
+static void MemIf_Loadong_Default_Valus_Rec002(void)
+{
+	Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Relays_On_Syetem = 0x03;
+	Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Switches_On_Syetem = 0x03;
+	Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Sensors_On_Syetem = 0x03;
+	Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Reserved;
+
+	Nvm_Descriptor_Rec002_FD01.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Relays_On_Syetem,4,1);
+
+	Nvm_Descriptor_Rec002_FD01.Write_Status = Writing_Needed;
+}
+
+static void MemIf_Loadong_Default_Valus_Rec003(void)
+{
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0] = 0;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[1] = 0;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[2] = 0;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[3] = 0;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[4] = 0;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[5] = 0;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[6] = 8;
+	Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[7] = 0;
+
+
+	Nvm_Descriptor_Rec003_FD02.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0],8,1);
+
+	Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_Needed;
+}
+
+static void MemIf_Loadong_Default_Valus_Rec004(void)
+{
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[0] = 0;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[1] = 0;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[2] = 0;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[3] = 0;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[4] = 0;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[5] = 0;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[6] = 8;
+	Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[7] = 0;
+
+
+	Nvm_Descriptor_Rec004_FD03.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0],8,1);
+
+	Nvm_Descriptor_Rec004_FD03.Write_Status = Writing_Needed;
+}
+
+static u16 Check_Sum_calculator(u8 *Pointer_Data,u8 Data_Lenght,u8 copy_Gain)
+{
+	u32 Accumlative_Data = 0;
+	u16 Sum_Return = 0;
+	for(u8 i = 0 ; i < Data_Lenght; i++)
+	{
+		Accumlative_Data = Accumlative_Data + *(Pointer_Data + i)* copy_Gain;
+	}
+
+	Sum_Return = (u16) Accumlative_Data;
+	return Sum_Return;
+
+}
+
+
+static void MemIf_Write_Rec001(void)
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = &Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Hardware_Version;
+
+	for(u8 i = 0 ; i < 6; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	Nvm_Descriptor_Rec001_FD00.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec001_FD00.Rec001_copy_FD00.Hardware_Version,6,1);
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec001_FD00.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec001_FD00.Block_Check_Sum>>8));
+
+
+	if(OK_EEPROM == EEPROM_Driver_Write(3,&Local_Queue_IF))
+	{
+		Nvm_Descriptor_Rec001_FD00.Write_Status = Writing_On_Going;
+	}
+}
+
+static void MemIf_Write_Rec002(void)
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = &Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Relays_On_Syetem;
+
+	for(u8 i = 0 ; i < 4; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	Nvm_Descriptor_Rec002_FD01.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec002_FD01.Rec002_copy_FD01.Number_Relays_On_Syetem,4,1);
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec002_FD01.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec002_FD01.Block_Check_Sum>>8));
+
+	if(OK_EEPROM == EEPROM_Driver_Write(11,&Local_Queue_IF))
+	{
+		Nvm_Descriptor_Rec002_FD01.Write_Status = Writing_On_Going;
+	}
+}
+
+static void MemIf_Write_Rec003(void)
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = &Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0];
+
+	for(u8 i = 0 ; i < 8; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	Nvm_Descriptor_Rec003_FD02.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec003_FD02.Rec003_copy_FD02.Relay_status[0],8,1);
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec003_FD02.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec003_FD02.Block_Check_Sum>>8));
+
+	if(OK_EEPROM == EEPROM_Driver_Write(17,&Local_Queue_IF))
+	{
+		Nvm_Descriptor_Rec003_FD02.Write_Status = Writing_On_Going;
+	}
+}
+
+static void MemIf_Write_Rec004(void)
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = &Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[0];
+
+	for(u8 i = 0 ; i < 8; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	Nvm_Descriptor_Rec004_FD03.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec004_FD03.Rec004_copy_FD03.Switch_status[0],8,1);
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec004_FD03.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec004_FD03.Block_Check_Sum>>8));
+
+	if(OK_EEPROM == EEPROM_Driver_Write(27,&Local_Queue_IF))
+	{
+		Nvm_Descriptor_Rec004_FD03.Write_Status = Writing_On_Going;
+	}
+}

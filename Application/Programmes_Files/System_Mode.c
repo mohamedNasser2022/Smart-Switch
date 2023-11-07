@@ -18,13 +18,25 @@ static volatile u32 system_time_ms;
 u8 SSID[] = "Thorn";
 u8 PASS[] = "abdalaze0m1WMA19";
 
+static struct{
+	volatile u8 System_Mode;
+	volatile u8 Mode_Status;
+
+}System_Mode_Controller;
+
 static volatile push_button_t Push_Button;
-static volatile u8 WIFI_Trigger_Mode = 0;
+
 static volatile u8 WIFI_sequenc_status = 0;
 static volatile u8 WIFI_Initialization_Sequence_Counter = 1;
+
 void System_Init(void)
 {
+	System_Mode_Controller.System_Mode = INITIOLAZTION_MODE;
+
+	Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+
 	Push_Button.Pin_ID = PIN_TO_RESET_SYSTEM_CONFIGRUTIONS;
+
 	Push_Button.Button_Mode = BUTTON_NOT_PRESSED;
 	Rte_PortControl_Pin_Init(Push_Button.Pin_ID,PULL_UP);
 
@@ -39,17 +51,7 @@ void system_Polling(void)
 {
 
 
-	if(WIFI_Trigger_Mode == INITIOLAZTION_MODE )
-	{
-		System_Init_WIFI_Mode_Sequence();
 
-	}
-	else
-	{
-
-	}
-	System_Fetch_Messages();
-	System_Fetch_Shared_Variables();
 
 }
 
@@ -62,76 +64,184 @@ void system_Periodic(void)
 		Push_Button_Task(); // Comes Each 10 ms
 
 	}
+	Runnable_System_Mode_Wifi_Init();
 
 }
 
-static void System_Init_WIFI_Mode_Sequence(void)
+static void Runnable_System_Mode_Wifi_Init(void)
 {
+	volatile u8 Local_Array_Data[2];
 
-
-	switch(WIFI_Initialization_Sequence_Counter)
+	Rte_Read_System_Mode(&System_Mode_Controller.System_Mode);
+	switch (System_Mode_Controller.System_Mode)
 	{
-	case  1:
+	case INITIOLAZTION_MODE: /*Shall send Message 0x01 and wait Respond*/
 
-		Rte_Write_Message_0x02(INITIOLAZTION_MODE);
-		WIFI_Initialization_Sequence_Counter ++;
-		WIFI_Initialization_Sequence_Counter +=50;
-
-		break;
-
-	case 2:
-
-		Rte_Write_Message_0x01(NUMBER_RELAYS_ON_THIS_ECU,1,5);
-
-		WIFI_Initialization_Sequence_Counter ++;
-		WIFI_Initialization_Sequence_Counter +=50;
-
-		break;
-	case 3:
-
-		Rte_Write_WIFI_Sequenc_Variable(SYSTEM_ENABLE_SEQUENCE);
-
-		WIFI_Initialization_Sequence_Counter ++;
-		WIFI_Initialization_Sequence_Counter +=50;
-
-		break;
-	case 4:
-
-		Rte_Write_Message_0x02(STAND_BY_MODE);
-
-		WIFI_Initialization_Sequence_Counter ++;
-		WIFI_Initialization_Sequence_Counter +=50;
-		break;
-	case 5:
-
-		Rte_Write_Message_0x20(SSID);
-		Rte_Write_Message_0x21(PASS);
-		WIFI_Initialization_Sequence_Counter ++;
-		WIFI_Initialization_Sequence_Counter +=50;
-
-		break;
-
-
-	default :
-		break;
-
-	}
-
-}
-
-static void System_Fetch_Shared_Variables(void)
-{
-	if(Rte_Read_WIFI_Sequenc_Variable(&WIFI_sequenc_status))
-	{
-		if(WIFI_sequenc_status == OBJECT_FINISHED_SEQUENCE)
+		if (System_Mode_Controller.Mode_Status == UNDEFINED)
 		{
-			Rte_Write_WIFI_Sequenc_Variable(UNDEFINED);
-			WIFI_Initialization_Sequence_Counter -=50;
+			Rte_Write_Message_0x01(NUMBER_OF_RELAYS_INTERNAL_ON_CHIP,LENGHT_STATUS_OBJECT_ON_SYSTEM,0);
+			
+			System_Mode_Controller.Mode_Status = Sys_OnGoing;
 		}
+		else if(Sys_OnGoing == System_Mode_Controller.Mode_Status)
+		{
+			
+
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			{
+				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == INITIOLAZTION_MODE)
+				{
+					System_Mode_Controller.Mode_Status = Sys_Done;
+				}
+				else
+				{
+					System_Mode_Controller.Mode_Status = Sys_Faild;
+				}
+
+			}
+
+		}
+		else if(System_Mode_Controller.Mode_Status == Sys_Done)
+		{
+			System_Mode_Controller.System_Mode = SYSTEM_ENABLE_SEQUENCE;
+			Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+			System_Mode_Controller.Mode_Status = UNDEFINED;
+
+		}
+		else if(System_Mode_Controller.Mode_Status == Sys_Faild)
+		{
+
+		}
+		else
+		{
+
+		}
+		break;
+	case SYSTEM_ENABLE_SEQUENCE: 
+
+		if(System_Mode_Controller.Mode_Status  == UNDEFINED)
+		{
+			WIFI_sequenc_status = SYSTEM_ENABLE_SEQUENCE;
+			Rte_Write_WIFI_Sequenc_Variable(&WIFI_sequenc_status);
+			System_Mode_Controller.Mode_Status = Sys_OnGoing;
+
+		}
+		else if(System_Mode_Controller.Mode_Status  == Sys_OnGoing)
+		{
+			if(Rte_Read_WIFI_Sequenc_Variable(&WIFI_sequenc_status))
+			{
+				if(WIFI_DONE == WIFI_sequenc_status)
+				{
+					
+					System_Mode_Controller.Mode_Status = Sys_Done;
+				}
+				else
+				{
+
+				}
+
+			}
+
+		}
+		else if(System_Mode_Controller.Mode_Status  == Sys_Done)
+		{
+			System_Mode_Controller.System_Mode = STAND_BY_MODE;
+			Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+			System_Mode_Controller.Mode_Status = UNDEFINED;
+			
+		}
+		else
+		{
+
+		}
+		break;
+	case STAND_BY_MODE:
+
+		if(System_Mode_Controller.Mode_Status  == UNDEFINED)
+		{
+			Rte_Write_Message_0x20(SSID);
+			Rte_Write_Message_0x21(PASS);
+			System_Mode_Controller.Mode_Status = Sys_OnGoing;
+
+		}
+		else if(Sys_OnGoing == System_Mode_Controller.Mode_Status)
+		{
+			
+
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			{
+				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == WIFI_MODE_Stand_by)
+				{
+					System_Mode_Controller.Mode_Status = Sys_Done;
+				}
+				else
+				{
+					System_Mode_Controller.Mode_Status = Sys_Faild;
+				}
+
+			}
+		}
+		else if(System_Mode_Controller.Mode_Status  == Sys_Done)
+		{
+			System_Mode_Controller.System_Mode = WIFI_MODE_Stand_by;
+			Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+			System_Mode_Controller.Mode_Status = UNDEFINED;
+
+		}
+
+		break;
+
+		case WIFI_MODE_Stand_by:
+
+			
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			{
+				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == WIFI_MODE)
+				{
+					System_Mode_Controller.System_Mode = WIFI_MODE;
+					Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+				}
+				else
+				{
+					
+				}
+
+			}
+		
+
+			break;
+
+		case WIFI_MODE:
+
+			
+
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			{
+				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == WIFI_MODE_Stand_by)
+				{
+					System_Mode_Controller.System_Mode = WIFI_MODE_Stand_by;
+					Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+				}
+				else
+				{
+					
+				}
+
+			}
+		
+
+			break;
+	
+	default:
+		break;
 	}
-	Rte_Read_System_Mode(&WIFI_Trigger_Mode);
+
+
 }
 
+
+
+/*
 static void System_Fetch_Messages(void)
 {
 	u8 Local_Array_Data[10];
@@ -141,57 +251,12 @@ static void System_Fetch_Messages(void)
 		System_Mode_Message_0x03_Analize(Local_Array_Data);
 	}
 }
-
+*/
 /*****************************************************Message Writing*******************************************************/
 
 
 /*****************************************************Message Writing*****Ending**************************************************/
 
-static void System_Mode_Message_0x03_Analize(u8* Pointer_Data)
-{
-	u8 Local_Check = 1;
-
-	u8 Local_System_mode ;
-
-
-	if(Pointer_Data[0] == WIFI_OK && Pointer_Data[1] == INITIOLAZTION_MODE)
-	{
-
-		Rte_Write_Status_ID(Pointer_Data[2]);
-	}
-	else if(Pointer_Data[0] == WIFI_OK && Pointer_Data[1] == NUMBER_RELAYS_ON_THIS_ECU)
-	{
-
-	}
-	else if(Pointer_Data[0] == WIFI_OK && Pointer_Data[1] == STAND_BY_MODE)
-	{
-		//Rte_Write_System_Mode(STAND_BY_MODE);
-		Rte_Write_WIFI_Sequenc_Variable(WIFI_FINISHED_SEQUENCE);
-
-	}
-	else if(Pointer_Data[0] == WIFI_OK && Pointer_Data[1] == WIFI_MODE)
-	{
-		Rte_Write_System_Mode(WIFI_MODE);
-
-		WIFI_Initialization_Sequence_Counter -=100;
-
-	}
-	else
-	{
-		Local_Check = 0;
-		//Rte_Write_System_Mode(STAND_BY_MODE);
-	}
-
-	if(Local_Check == 1 )
-	{
-		WIFI_Initialization_Sequence_Counter -=50;
-	}
-	else
-	{
-
-	}
-
-}
 
 static void Push_Button_Task(void)
 {
@@ -242,7 +307,7 @@ static void Push_Button_Task(void)
 			Push_Button.Button_Mode = BUTTON_NOT_PRESSED;
 			if(Push_Button.Button_Time_Counter_ms >= 3000 && Push_Button.Button_Time_Counter_ms <= 7000)
 			{
-				Rte_Write_System_Mode(INITIOLAZTION_MODE); // Write this to start Init Sequenc for WIFI
+				//Rte_Write_System_Mode(INITIOLAZTION_MODE); // Write this to start Init Sequenc for WIFI
 			}
 			else if(Push_Button.Button_Time_Counter_ms >= 10000 && Push_Button.Button_Time_Counter_ms <= 16000)
 			{
