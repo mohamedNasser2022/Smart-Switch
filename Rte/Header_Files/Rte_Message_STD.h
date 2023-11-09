@@ -31,7 +31,25 @@ typedef struct
 
 }Idt_Message_0x11_t;
 
+#define MESSAGE_ARRAY_ELEMENTS_NUMBER_0x30 20
+#define MESSAGE_0x30	  0x30
+typedef struct
+{
+	
+	u8 Data[MESSAGE_ARRAY_ELEMENTS_NUMBER_0x30];
+	
 
+}Idt_Message_0x30_t;
+
+#define MESSAGE_ARRAY_ELEMENTS_NUMBER_0x31 40
+#define MESSAGE_0x31	  0x31
+typedef struct
+{
+	
+	u8 Data[MESSAGE_ARRAY_ELEMENTS_NUMBER_0x31];
+	
+
+}Idt_Message_0x31_t;
 
 
 #endif

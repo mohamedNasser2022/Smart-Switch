@@ -216,6 +216,18 @@ static void Gate_Way(u8* Message_Data)
 		Rte_Write_Message_0x10(&Message_Data[1]);
 
 		break;
+
+	case MESSAGE_0x30:
+
+		Rte_Write_FD03(&Message_Data[1]); /*write Data to Nvm*/
+
+		break;
+	case MESSAGE_0x31:
+
+		Rte_Write_FD04(&Message_Data[1]); /*write Data to Nvm*/
+
+		break;
+		
 	default:
 
 

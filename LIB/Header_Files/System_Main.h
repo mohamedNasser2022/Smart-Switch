@@ -43,10 +43,11 @@ enum
     WIFI_FINISHED_SEQUENCE   ,   
     WIFI_ERROR_SEQUENCE   ,      
     OBJECT_DATA_LOADED_DONE,
-    OBJECT_DATA_LOADED_ERROR,  
-
-
+    OBJECT_DATA_LOADED_ERROR,
+      
+    
 }Sys_Modes;
+
 
 
 #define ECU_NUMBER   MY_ID

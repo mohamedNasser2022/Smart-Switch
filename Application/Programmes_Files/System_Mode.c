@@ -9,18 +9,21 @@
 #include"STD_TYPES.h"
 #include"Data_Structure.h"
 #include"RTE.h"
+#include"Rte_Nvm_STD.h"
+#include"Rte_Message_STD.h"
 #include"LIB_ERROR.h"
 
 #include"system_mode.h"
 #include"DIO_config.h"
 static volatile u32 system_time_ms;
 
-u8 SSID[] = "Thorn";
-u8 PASS[] = "abdalaze0m1WMA19";
+Idt_Rec005 SSID;
+Idt_Rec006 PASS;
 
 static struct{
 	volatile u8 System_Mode;
 	volatile u8 Mode_Status;
+	volatile u8 Nvm_State;
 
 }System_Mode_Controller;
 
@@ -33,7 +36,7 @@ void System_Init(void)
 {
 	System_Mode_Controller.System_Mode = INITIOLAZTION_MODE;
 
-	Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
+	Rte_Write_System_Mode(&System_Mode_Controller.System_Mode); /*Bypass*/
 
 	Push_Button.Pin_ID = PIN_TO_RESET_SYSTEM_CONFIGRUTIONS;
 
@@ -58,13 +61,18 @@ void system_Polling(void)
 void system_Periodic(void)
 {
 	system_time_ms ++ ;
-
+	Runnable_System_Read_Nvm_Data();
 	if(system_time_ms % 10 == 0)
 	{
 		Push_Button_Task(); // Comes Each 10 ms
 
 	}
-	Runnable_System_Mode_Wifi_Init();
+	
+	if(1 == System_Mode_Controller.Nvm_State)
+	{
+		Runnable_System_Mode_Wifi_Init();	
+	}
+	
 
 }
 
@@ -159,8 +167,9 @@ static void Runnable_System_Mode_Wifi_Init(void)
 
 		if(System_Mode_Controller.Mode_Status  == UNDEFINED)
 		{
-			Rte_Write_Message_0x20(SSID);
-			Rte_Write_Message_0x21(PASS);
+			
+			Rte_Write_Message_0x20(&SSID);
+			Rte_Write_Message_0x21(&PASS);
 			System_Mode_Controller.Mode_Status = Sys_OnGoing;
 
 		}
@@ -239,19 +248,23 @@ static void Runnable_System_Mode_Wifi_Init(void)
 
 }
 
-
-
-/*
-static void System_Fetch_Messages(void)
+static void Runnable_System_Read_Nvm_Data(void)
 {
-	u8 Local_Array_Data[10];
-
-	if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+	if(0 == System_Mode_Controller.Nvm_State)
 	{
-		System_Mode_Message_0x03_Analize(Local_Array_Data);
+		if(Read_Done == Rte_Read_FD04(&SSID) && Read_Done ==  Rte_Read_FD05(&PASS))
+		{
+			System_Mode_Controller.Nvm_State = 1;
+		}
+		else
+		{
+
+		}
+		
 	}
 }
-*/
+
+
 /*****************************************************Message Writing*******************************************************/
 
 
