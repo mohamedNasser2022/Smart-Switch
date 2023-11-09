@@ -791,13 +791,7 @@ STD_Returns Rte_Nvm_Write_FD03(Idt_Rec004_FD03 *Pointer_data)
 
 STD_Returns Rte_Write_FD04(Idt_Rec005 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
-
-	for(u8 i = 0 ; i < Data_Lenght ; i++)
-	{
-		Rte_Data_Rec005.WiFi_Name.Data[i] = Pointer_data->Data[i];
-	}
-
+	MemIf_Immediate_Write_Rec005(Pointer_data);
 	return Write_Done;
 }
 
@@ -815,12 +809,7 @@ STD_Returns Rte_Nvm_Write_FD04(Idt_Rec005 *Pointer_data)
 
 STD_Returns Rte_Write_FD05(Idt_Rec006 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
-
-	for(u8 i = 0 ; i < Data_Lenght ; i++)
-	{
-		Rte_Data_Rec006.WiFi_Password.Data[i] = Pointer_data->Data[i];
-	}
+	MemIf_Immediate_Write_Rec006(Pointer_data);
 
 	return Write_Done;
 }

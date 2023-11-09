@@ -774,15 +774,30 @@ static void MemIf_Loadong_Default_Valus_Rec004(void)
 /*-------------------Loading default value for each Record -----------------------------*/
 
 /*------------------Immediate Writing Function  -------------------------*/
-void MemIf_Immediate_Write_Rec005(void)
+void MemIf_Immediate_Write_Rec005(Idt_Rec005 *Pointer_data)
 {
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec005.Block_Type) + 1;
 
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		*(Local_Pointer + i) = Pointer_data->Data[i];
+	}
+	MemIf_Write_Rec005();
 }
 
-void MemIf_Immediate_Write_Rec006(void)
+void MemIf_Immediate_Write_Rec006(Idt_Rec006 *Pointer_data)
 {
-	
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		*(Local_Pointer + i) = Pointer_data->Data[i];
+	}
+	MemIf_Write_Rec006();
 }
+
 /*------------------Immediate Writing Function  -------------------------*/
 
 /*------------------Writing Function for each Record -------------------------*/
