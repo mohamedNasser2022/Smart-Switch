@@ -11,5 +11,7 @@
 void MemIf_Init(void);
 void MemIf_Polling(void);
 void MemIf_Time(void);
+void MemIf_Immediate_Write_Rec005(void);
+void MemIf_Immediate_Write_Rec006(void);
 
 #endif /* MEMORY_STACK_HEADER_FILES_MEMORY_ABSTRACTION_MEM_ABSTRACTION_INTERFACE_H_ */
