@@ -8,7 +8,7 @@
 #ifndef MEMORY_STACK_HEADER_FILES_MEMORY_ABSTRACTION_MEM_ABSTRACTION_PRIVATE_H_
 #define MEMORY_STACK_HEADER_FILES_MEMORY_ABSTRACTION_MEM_ABSTRACTION_PRIVATE_H_
 
-static void Notification_Handler_Physical_Layer(void* Modes,void* Pointer);
+
 static void MemIf_Loading_Nvm_Manger_Data(void *Pointer);
 static void MemIF_Module_Modes_Switching(void);
 static u16 Check_Sum_calculator(u8 *Pointer_Data,u8 Data_Lenght,u8 copy_Gain);
@@ -21,12 +21,34 @@ static void MemIf_Runnable_Reading_From_Rte(void);
 static void updates_Writing_state_of_each_block(u16 copy_address,u8 copy_status);
 static u8 MemIf_Nvm_Read_All(void);
 static void MemIf_Loading_Blocks(void *Pointer);
+
+/*-------------------Loading default value for each Record -----------------------------*/
 static void MemIf_Loadong_Default_Valus_Rec001(void);
 static void MemIf_Loadong_Default_Valus_Rec002(void);
 static void MemIf_Loadong_Default_Valus_Rec003(void);
 static void MemIf_Loadong_Default_Valus_Rec004(void);
+/*-------------------Loading default value for each Record -----------------------------*/
+
+/*------------------Writing Function for each Record -------------------------*/
 static void MemIf_Write_Rec001(void);
 static void MemIf_Write_Rec002(void);
 static void MemIf_Write_Rec003(void);
 static void MemIf_Write_Rec004(void);
+/*------------------Writing Function for each Record -------------------------*/
+
+/*------------------Reading Function for each Record --------------------------*/
+static void MemIf_Read_Rec001(void);
+static void MemIf_Read_Rec002(void);
+static void MemIf_Read_Rec003(void);
+static void MemIf_Read_Rec004(void);
+/*------------------Reading Function for each Record --------------------------*/
+
+/*-------------------------CAll Back-----------------------------------------*/
+static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer);
+static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer);
+static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer);
+static void CallBack_Rec004(void* Modes,void* Mode_Status,void* Pointer);
+static void Notification_Handler_Physical_Layer(void* Modes,void* Mode_Status,void* Pointer);
+/*-------------------------CAll Back-----------------------------------------*/
+
 #endif /* MEMORY_STACK_HEADER_FILES_MEMORY_ABSTRACTION_MEM_ABSTRACTION_PRIVATE_H_ */

@@ -33,5 +33,6 @@ void EEPROM_Driver_Polling(void);
 void EEPROM_Driver_Initialization(void);
 u8 EEPROM_Driver_Read(u16 copy_Reading_Starting_from,u8 Lenght_of_Reading,void (*Pointer_Function)(void*));
 u8 EEPROM_Driver_Write(u16 WordAddress,EEROM_Queue *Pointer_To_Queue);
+u8 EEPROM_Driver_Set_Call_Back_Writing(void (*Pointer_Function)(void*));
 u8 EEPROM_Requested_Erase_ALL(void);
 #endif /* MEMORY_STACK_HEADER_FILES_MEMORY_EEPROM_DRIVER_INTERFACE_H_ */

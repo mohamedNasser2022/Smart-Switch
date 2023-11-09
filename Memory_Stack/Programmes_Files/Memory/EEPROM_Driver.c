@@ -16,7 +16,8 @@
 #include"EEPROM_Driver_Interface.h"
 #include"EEPROM_Driver_Config.h"
 volatile static u32 EEPROM_Driver_Time_ms = 0;
-void (*EEPROM_Call_Back)(void*,void*);
+void (*EEPROM_Call_Back)(void*,void*,void*);
+void (*EEPROM_Call_Back_Writing)(void*,void*,void*);
 
 /*------------------------------------Typedef--------------------------------------------*/
 
@@ -143,6 +144,11 @@ u8 EEPROM_Driver_Write(u16 WordAddress,EEROM_Queue *Pointer_To_Queue)
 
 
 	return Local_Return;
+}
+
+u8 EEPROM_Driver_Set_Call_Back_Writing(void (*Pointer_Function)(void*))
+{
+	EEPROM_Call_Back_Writing = Pointer_Function;
 }
 
 u8 EEPROM_Driver_Read(u16 copy_Reading_Starting_from,u8 Lenght_of_Reading,void (*Pointer_Function)(void*))
@@ -309,6 +315,7 @@ static void Notification_Handler_I2C(void* Pointer)
 
 	u8 Local_Data;
 	volatile  u8 Local_Mode = 0;
+	volatile  u8 Local_Mode_Status = 0;
 	volatile u16 Local_Address_request_status_Data[2];
 
 	switch(EEPROM_Driver_System_Mode.EEPROM_MODE)
@@ -339,33 +346,45 @@ static void Notification_Handler_I2C(void* Pointer)
 
 		if((*((u8*)Pointer) ==  I2C_Request_Done))
 		{
+			Local_Mode_Status = OK_EEPROM;
 			Local_Address_request_status_Data[0] = EEPROM_Driver_System_Mode.EEPROM_Current_Word_Address;
 			Local_Address_request_status_Data[1] = OK_EEPROM;
-			EEPROM_Call_Back(&Local_Mode,Local_Address_request_status_Data);
+			EEPROM_Call_Back_Writing(&Local_Mode,&Local_Mode_Status,Local_Address_request_status_Data);
 
 		}
 		else if(I2C_Request_Faild == (*((u8*)Pointer)))
 		{
+			Local_Mode_Status = Faild_EEPROM;
 			Local_Address_request_status_Data[0] = EEPROM_Driver_System_Mode.EEPROM_Current_Word_Address;
 			Local_Address_request_status_Data[1] = Faild_EEPROM;
-			EEPROM_Call_Back(&Local_Mode,Local_Address_request_status_Data);
+			EEPROM_Call_Back_Writing(&Local_Mode,&Local_Mode_Status,Local_Address_request_status_Data);
+		}
+		else
+		{
+			/*Do nothing*/
 		}
 
 		EEPROM_Driver_System_Mode.EEPROM_MODE = Normal;
 		break;
 	case Reading:
 
+		Local_Mode = Reading;
+		
 		if(*((u8*)Pointer) != I2C_Request_Faild)
 		{
-			Local_Mode = Reading;
-			EEPROM_Call_Back(&Local_Mode,Pointer);
+			
+			Local_Mode_Status = OK_EEPROM;
+			EEPROM_Call_Back(&Local_Mode,&Local_Mode_Status,Pointer);
 
 			EEPROM_Driver_System_Mode.EEPROM_MODE = Normal;
 
 		}
 		else
 		{
+			Local_Mode_Status = Faild_EEPROM;
+			EEPROM_Call_Back(&Local_Mode,&Local_Mode_Status,Pointer);
 
+			EEPROM_Driver_System_Mode.EEPROM_MODE = Normal;
 		}
 
 		break;
