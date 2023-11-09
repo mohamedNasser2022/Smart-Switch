@@ -1355,7 +1355,7 @@ static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer)
 
 }
 
-static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer)
+static void CallBack_Rec006(void* Modes,void* Mode_Status,void* Pointer)
 {
 	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
 	u8 Local_Data = 0;
