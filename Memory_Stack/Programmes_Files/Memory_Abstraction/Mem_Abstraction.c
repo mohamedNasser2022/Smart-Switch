@@ -307,6 +307,8 @@ static void MemIf_Runnable_Writing_to_Rte(void)
 	Rte_Nvm_Write_FD01(&Nvm_Descriptor_Rec002.Rec002_copy_FD01);
 	Rte_Nvm_Write_FD02(&Nvm_Descriptor_Rec003.Rec003_copy_FD02);
 	Rte_Nvm_Write_FD03(&Nvm_Descriptor_Rec004.Rec004_copy_FD03);
+	Rte_Nvm_Write_FD04(&Nvm_Descriptor_Rec005.Rec005_copy_FD04);
+	Rte_Nvm_Write_FD05(&Nvm_Descriptor_Rec006.Rec006_copy_FD05);
 }
 
 static void MemIf_Runnable_Reading_From_Rte(void)
@@ -702,6 +704,24 @@ static u8 MemIf_Nvm_Read_All(void)
 	{
 		Local_Return |= MemIf_Ok;
 	}
+	if(Undefined == Nvm_Descriptor_Rec005.Read_Status)
+	{
+		MemIf_Read_Rec005();
+		Local_Return = MemIf_Busy;
+	}
+	else
+	{
+		Local_Return |= MemIf_Ok;
+	}
+		if(Undefined == Nvm_Descriptor_Rec006.Read_Status)
+	{
+		MemIf_Read_Rec006();
+		Local_Return = MemIf_Busy;
+	}
+	else
+	{
+		Local_Return |= MemIf_Ok;
+	}
 
 
 	return Local_Return;
@@ -903,10 +923,11 @@ static void MemIf_Write_Rec005(void)
 {
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
 
 	u8 *Local_Pointer = (&Nvm_Descriptor_Rec005.Block_Type) + 1;
 
-	for(u8 i = 0 ; i < 8; i++)
+	for(u8 i = 0 ; i < Data_Lenght; i++)
 	{
 		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
 
@@ -927,10 +948,10 @@ static void MemIf_Write_Rec006(void)
 {
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
-
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
 	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
 
-	for(u8 i = 0 ; i < 8; i++)
+	for(u8 i = 0 ; i < Data_Lenght; i++)
 	{
 		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
 
@@ -1006,7 +1027,8 @@ static void MemIf_Read_Rec004(void)
 
 static void MemIf_Read_Rec005(void)
 {
-	if(On_Progress == EEPROM_Driver_Read(37,20,CallBack_Rec005))
+	u8 Data_Lenght = (sizeof(Idt_Rec005)/sizeof(u8)) +  (sizeof(u16)/sizeof(u8));
+	if(On_Progress == EEPROM_Driver_Read(37,Data_Lenght,CallBack_Rec005))
 	{
 		Nvm_Descriptor_Rec004.Read_Status = Read_On_Going;
 	}
@@ -1019,7 +1041,8 @@ static void MemIf_Read_Rec005(void)
 
 static void MemIf_Read_Rec006(void)
 {
-	if(On_Progress == EEPROM_Driver_Read(59,40,CallBack_Rec006))
+	u8 Data_Lenght = (sizeof(Idt_Rec006)/sizeof(u8)) +  (sizeof(u16)/sizeof(u8));
+	if(On_Progress == EEPROM_Driver_Read(59,Data_Lenght,CallBack_Rec006))
 	{
 		Nvm_Descriptor_Rec004.Read_Status = Read_On_Going;
 	}
@@ -1295,15 +1318,16 @@ static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer)
 {
 	u8 *Local_Pointer = (&Nvm_Descriptor_Rec005.Block_Type) + 1;
 	u8 Local_Data = 0;
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
 
 	switch (*((u8*)Modes))
 	{
 		case Reading:
 
 
-			if(OK_EEPROM ==*((u8*)Mode_Status))
+			if(OK_EEPROM == *((u8*)Mode_Status))
 			{
-				for(u8 i = 0 ; i < 8 ; i++) // Data loading
+				for(u8 i = 0 ; i < Data_Lenght ; i++) // Data loading
 				{
 					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 					{
@@ -1359,7 +1383,7 @@ static void CallBack_Rec006(void* Modes,void* Mode_Status,void* Pointer)
 {
 	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
 	u8 Local_Data = 0;
-
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
 	switch (*((u8*)Modes))
 	{
 		case Reading:
@@ -1367,7 +1391,7 @@ static void CallBack_Rec006(void* Modes,void* Mode_Status,void* Pointer)
 
 			if(OK_EEPROM ==*((u8*)Mode_Status))
 			{
-				for(u8 i = 0 ; i < 8 ; i++) // Data loading
+				for(u8 i = 0 ; i < Data_Lenght ; i++) // Data loading
 				{
 					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 					{
