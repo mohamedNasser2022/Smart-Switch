@@ -52,6 +52,20 @@ static struct
 
 }Rte_Data_Rec004_FD03;
 
+static struct
+{
+	Idt_Rec005 WiFi_Name;
+	u8 Nvm_Data_Status;
+
+}Rte_Data_Rec005;
+
+static struct
+{
+	Idt_Rec006 WiFi_Password;
+	u8 Nvm_Data_Status;
+
+}Rte_Data_Rec006;
+
 static struct {
 
 	Idt_Message_0x10_t Rte_Message_0x10;
@@ -374,60 +388,6 @@ u8 Rte_Read_Message_0x02(u8 *Pointer_Data) /*Protocol Translator shall read this
 
 }
 
-u8 Rte_Write_Message_0x13(Idt_Message_0x13_t *Pointer_Data) /*Object SW shall write this message*/
-{
-	u8 Local_Return = Write_Done ;
-
-
-	u8 Local_Size = sizeof(Idt_Message_0x13_t) / sizeof(u8);
-
-	if(Not_Availabe == Message_0x13.Rte_Message_Status )
-	{
-		Message_0x13.Rte_Message_Status = On_progress;
-
-		for(u8 i = 0 ; i < Local_Size; i++)
-		{
-			
-			Message_0x13.Relays_Status.Data[i] = Pointer_Data->Data[i];
-		}
-	
-
-		Message_0x13.Rte_Message_Status = Available;
-	}
-	else
-	{
-		Local_Return = Write_Faild;
-	}
-
-	return Local_Return;
-}
-
-u8 Rte_Read_Message_0x13(Idt_Message_0x13_t *Pointer_Data) /*Protocol Translator shall read this message*/
-{
-	u8 Local_Return = Read_Done ;
-
-	u8 Local_Size = sizeof(Idt_Message_0x13_t) / sizeof(u8);
-
-	if(Available == Message_0x13.Rte_Message_Status)
-	{
-		Message_0x13.Rte_Message_Status = On_progress;
-
-		for(u8 i = 0 ; i < Local_Size; i++)
-		{
-			Pointer_Data->Data[i] = Message_0x13.Relays_Status.Data[i];
-			
-		}
-
-		Message_0x13.Rte_Message_Status = Not_Availabe;
-	}
-	else
-	{
-		Local_Return = Read_Faild;
-	}
-
-	return Local_Return;
-
-}
 
 u8 Rte_Write_Message_0x14(copy_Data_0,copy_Data_1) /*Object SW shall write this message*/
 {
@@ -829,6 +789,54 @@ STD_Returns Rte_Nvm_Write_FD03(Idt_Rec004_FD03 *Pointer_data)
 	return Write_Done;
 }
 
+STD_Returns Rte_Write_FD04(Idt_Rec005 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec005.WiFi_Name.Data[i] = Pointer_data->Data[i];
+	}
+
+	return Write_Done;
+}
+
+STD_Returns Rte_Nvm_Write_FD04(Idt_Rec005 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec005.WiFi_Name.Data[i] = Pointer_data->Data[i];
+	}
+	Rte_Data_Rec005.Nvm_Data_Status = Rte_Load_Done;
+	return Write_Done;
+}
+
+STD_Returns Rte_Write_FD05(Idt_Rec006 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec006.WiFi_Password.Data[i] = Pointer_data->Data[i];
+	}
+
+	return Write_Done;
+}
+
+STD_Returns Rte_Nvm_Write_FD05(Idt_Rec006 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		Rte_Data_Rec006.WiFi_Password.Data[i] = Pointer_data->Data[i];
+	}
+	Rte_Data_Rec006.Nvm_Data_Status = Rte_Load_Done;
+	return Write_Done;
+}
+
 STD_Returns Rte_Read_FD00(Idt_Rec001_FD00 *Pointer_data)
 {
 	u8 Local_Return = Read_Done;
@@ -898,6 +906,52 @@ STD_Returns Rte_Read_FD03(Idt_Rec004_FD03 *Pointer_data)
 		for(u8 i = 0 ; i < Data_Lenght ; i++)
 		{
 			Pointer_data->Switch_status[i] = Rte_Data_Rec004_FD03.Rec004_FD03.Switch_status[i] ;
+		}
+
+	}
+	else
+	{
+		Local_Return = Read_Faild;
+	}
+
+
+	return Local_Return;
+}
+
+STD_Returns Rte_Read_FD04(Idt_Rec005 *Pointer_data)
+{
+	u8 Local_Return = Read_Done;
+
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
+
+	if(Rte_Load_Done == Rte_Data_Rec005.Nvm_Data_Status)
+	{
+		for(u8 i = 0 ; i < Data_Lenght ; i++)
+		{
+			Pointer_data->Data[i] = Rte_Data_Rec005.WiFi_Name.Data[i] ;
+		}
+
+	}
+	else
+	{
+		Local_Return = Read_Faild;
+	}
+
+
+	return Local_Return;
+}
+
+STD_Returns Rte_Read_FD05(Idt_Rec006 *Pointer_data)
+{
+	u8 Local_Return = Read_Done;
+
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
+
+	if(Rte_Load_Done == Rte_Data_Rec006.Nvm_Data_Status)
+	{
+		for(u8 i = 0 ; i < Data_Lenght ; i++)
+		{
+			Pointer_data->Data[i] = Rte_Data_Rec006.WiFi_Password.Data[i] ;
 		}
 
 	}
