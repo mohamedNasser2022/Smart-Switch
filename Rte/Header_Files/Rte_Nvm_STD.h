@@ -34,4 +34,16 @@ typedef struct
     u8 Switch_status[LENGHT_STATUS_OBJECT_ON_SYSTEM];
 }Idt_Rec004_FD03;
 
+typedef struct 
+{
+    /* data */
+    u8 Data[20]; /*WiFi Name */
+}Idt_Rec005;
+
+typedef struct 
+{
+    /* data */
+    u8 Data[40];  /*WiFi Pass */
+}Idt_Rec006;
+
 #endif

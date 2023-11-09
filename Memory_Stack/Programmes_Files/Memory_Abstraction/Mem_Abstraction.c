@@ -81,8 +81,8 @@ enum{
 static struct 
 {
 	u8 Block_Type;
-	u8 writing_Counter;
 	Idt_Rec001_FD00 Rec001_copy_FD00;
+	u8 writing_Counter;
 	u16 Block_Check_Sum;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
@@ -92,8 +92,8 @@ static struct
 static struct 
 {
 	u8 Block_Type;
-	u8 writing_Counter;
 	Idt_Rec002_FD01 Rec002_copy_FD01;
+	u8 writing_Counter;
 	u16 Block_Check_Sum ;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
@@ -103,11 +103,11 @@ static struct
 static struct 
 {
 	u8 Block_Type;
+	Idt_Rec003_FD02 Rec003_copy_FD02;
 	u8 writing_Counter;
 	u8 Block_Time_1count_30sec;
-	u8 Writing_Enable:1;
-	Idt_Rec003_FD02 Rec003_copy_FD02;
 	u16 Block_Check_Sum ;
+	u8 Writing_Enable:1;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
 
@@ -116,11 +116,11 @@ static struct
 static struct 
 {
 	u8 Block_Type;
+	Idt_Rec004_FD03 Rec004_copy_FD03;
 	u8 writing_Counter;
 	u8 Block_Time_1count_30sec;
-	u8 Writing_Enable:1;
-	Idt_Rec004_FD03 Rec004_copy_FD03;
 	u16 Block_Check_Sum ;
+	u8 Writing_Enable:1;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
 
@@ -755,7 +755,7 @@ static void MemIf_Write_Rec001(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec001.Rec001_copy_FD00.Hardware_Version;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec001.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 6; i++)
 	{
@@ -780,7 +780,7 @@ static void MemIf_Write_Rec002(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec002.Rec002_copy_FD01.Number_Relays_On_Syetem;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec002.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 4; i++)
 	{
@@ -804,7 +804,7 @@ static void MemIf_Write_Rec003(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec003.Rec003_copy_FD02.Relay_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec003.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 8; i++)
 	{
@@ -828,7 +828,7 @@ static void MemIf_Write_Rec004(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec004.Rec004_copy_FD03.Switch_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec004.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 8; i++)
 	{
@@ -912,7 +912,7 @@ static void MemIf_Read_Rec004(void)
 static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer)
 {
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec001.Rec001_copy_FD00.Hardware_Version;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec001.Block_Type) + 1;
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
@@ -976,7 +976,7 @@ static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer)
 static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer)
 {
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec002.Rec002_copy_FD01.Number_Relays_On_Syetem;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec002.Block_Type) + 1;
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
@@ -1039,7 +1039,7 @@ static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer)
 
 static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer)
 {
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec003.Rec003_copy_FD02.Relay_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec003.Block_Type) + 1;
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
@@ -1103,7 +1103,7 @@ static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer)
 
 static void CallBack_Rec004(void* Modes,void* Mode_Status,void* Pointer)
 {
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec004.Rec004_copy_FD03.Switch_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec004.Block_Type) + 1;
 	u8 Local_Data = 0;
 
 	switch (*((u8*)Modes))

@@ -39,7 +39,7 @@
 #define Protocol_Translator_Read_Message_0x11(POINTER)										Rte_Read_Message_0x11(POINTER,THIS_MY_ID)
 
 #define Protocol_Translator_Write_Message_0x13(DATA0,DATA1,DATA2,DATA3,DATA4,DATA5)	        Rte_Write_Message_0x13(DATA0,DATA1,DATA2,DATA3,DATA4,DATA5,SW_OBJECT_ID)
-#define Protocol_Translator_Read_Message_0x13(POINTER)										Rte_Read_Message_0x13(POINTER,THIS_MY_ID)
+
 
 #define Protocol_Translator_Write_Message_0x14(DATA0,DATA1)	        						Rte_Write_Message_0x14(DATA0,DATA1,SW_OBJECT_ID)
 #define Protocol_Translator_Read_Message_0x14(POINTER)										Rte_Read_Message_0x14(POINTER,THIS_MY_ID)
