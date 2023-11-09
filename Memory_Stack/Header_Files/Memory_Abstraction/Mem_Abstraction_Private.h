@@ -34,6 +34,8 @@ static void MemIf_Write_Rec001(void);
 static void MemIf_Write_Rec002(void);
 static void MemIf_Write_Rec003(void);
 static void MemIf_Write_Rec004(void);
+static void MemIf_Write_Rec005(void);
+static void MemIf_Write_Rec006(void);
 /*------------------Writing Function for each Record -------------------------*/
 
 /*------------------Reading Function for each Record --------------------------*/
@@ -41,6 +43,8 @@ static void MemIf_Read_Rec001(void);
 static void MemIf_Read_Rec002(void);
 static void MemIf_Read_Rec003(void);
 static void MemIf_Read_Rec004(void);
+static void MemIf_Read_Rec005(void);
+static void MemIf_Read_Rec006(void);
 /*------------------Reading Function for each Record --------------------------*/
 
 /*-------------------------CAll Back-----------------------------------------*/
@@ -48,6 +52,8 @@ static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer);
 static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer);
 static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer);
 static void CallBack_Rec004(void* Modes,void* Mode_Status,void* Pointer);
+static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer);
+static void CallBack_Rec006(void* Modes,void* Mode_Status,void* Pointer);
 static void Notification_Handler_Physical_Layer(void* Modes,void* Mode_Status,void* Pointer);
 /*-------------------------CAll Back-----------------------------------------*/
 

@@ -81,8 +81,8 @@ enum{
 static struct 
 {
 	u8 Block_Type;
-	u8 writing_Counter;
 	Idt_Rec001_FD00 Rec001_copy_FD00;
+	u8 writing_Counter;
 	u16 Block_Check_Sum;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
@@ -92,8 +92,8 @@ static struct
 static struct 
 {
 	u8 Block_Type;
-	u8 writing_Counter;
 	Idt_Rec002_FD01 Rec002_copy_FD01;
+	u8 writing_Counter;
 	u16 Block_Check_Sum ;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
@@ -103,11 +103,11 @@ static struct
 static struct 
 {
 	u8 Block_Type;
+	Idt_Rec003_FD02 Rec003_copy_FD02;
 	u8 writing_Counter;
 	u8 Block_Time_1count_30sec;
-	u8 Writing_Enable:1;
-	Idt_Rec003_FD02 Rec003_copy_FD02;
 	u16 Block_Check_Sum ;
+	u8 Writing_Enable:1;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
 
@@ -116,16 +116,41 @@ static struct
 static struct 
 {
 	u8 Block_Type;
+	Idt_Rec004_FD03 Rec004_copy_FD03;
 	u8 writing_Counter;
 	u8 Block_Time_1count_30sec;
-	u8 Writing_Enable:1;
-	Idt_Rec004_FD03 Rec004_copy_FD03;
 	u16 Block_Check_Sum ;
+	u8 Writing_Enable:1;
 	u8 Write_Status:4;
 	u8 Read_Status:4;
 
 }Nvm_Descriptor_Rec004;
 
+static struct 
+{
+	u8 Block_Type;
+	Idt_Rec005 Rec005_copy_FD04;
+	u8 writing_Counter;
+	u8 Block_Time_1count_30sec;
+	u16 Block_Check_Sum ;
+	u8 Writing_Enable:1;
+	u8 Write_Status:4;
+	u8 Read_Status:4;
+
+}Nvm_Descriptor_Rec005;
+
+static struct 
+{
+	u8 Block_Type;
+	Idt_Rec006 Rec006_copy_FD05;
+	u8 writing_Counter;
+	u8 Block_Time_1count_30sec;
+	u16 Block_Check_Sum ;
+	u8 Writing_Enable:1;
+	u8 Write_Status:4;
+	u8 Read_Status:4;
+
+}Nvm_Descriptor_Rec006;
 
 /*******************************************************/
 
@@ -748,6 +773,33 @@ static void MemIf_Loadong_Default_Valus_Rec004(void)
 
 /*-------------------Loading default value for each Record -----------------------------*/
 
+/*------------------Immediate Writing Function  -------------------------*/
+void MemIf_Immediate_Write_Rec005(Idt_Rec005 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec005.Block_Type) + 1;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		*(Local_Pointer + i) = Pointer_data->Data[i];
+	}
+	MemIf_Write_Rec005();
+}
+
+void MemIf_Immediate_Write_Rec006(Idt_Rec006 *Pointer_data)
+{
+	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
+
+	for(u8 i = 0 ; i < Data_Lenght ; i++)
+	{
+		*(Local_Pointer + i) = Pointer_data->Data[i];
+	}
+	MemIf_Write_Rec006();
+}
+
+/*------------------Immediate Writing Function  -------------------------*/
+
 /*------------------Writing Function for each Record -------------------------*/
 
 static void MemIf_Write_Rec001(void)
@@ -755,7 +807,7 @@ static void MemIf_Write_Rec001(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec001.Rec001_copy_FD00.Hardware_Version;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec001.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 6; i++)
 	{
@@ -780,7 +832,7 @@ static void MemIf_Write_Rec002(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec002.Rec002_copy_FD01.Number_Relays_On_Syetem;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec002.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 4; i++)
 	{
@@ -804,7 +856,7 @@ static void MemIf_Write_Rec003(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec003.Rec003_copy_FD02.Relay_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec003.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 8; i++)
 	{
@@ -828,7 +880,7 @@ static void MemIf_Write_Rec004(void)
 	EEROM_Queue Local_Queue_IF;
 	EEPROM_Queue_Create(&Local_Queue_IF);
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec004.Rec004_copy_FD03.Switch_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec004.Block_Type) + 1;
 
 	for(u8 i = 0 ; i < 8; i++)
 	{
@@ -844,6 +896,54 @@ static void MemIf_Write_Rec004(void)
 	if(OK_EEPROM == EEPROM_Driver_Write(27,&Local_Queue_IF))
 	{
 		Nvm_Descriptor_Rec004.Write_Status = Writing_On_Going;
+	}
+}
+
+static void MemIf_Write_Rec005(void)
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec005.Block_Type) + 1;
+
+	for(u8 i = 0 ; i < 8; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	Nvm_Descriptor_Rec005.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec005.Rec005_copy_FD04,8,1);
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec005.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec005.Block_Check_Sum>>8));
+
+	if(OK_EEPROM == EEPROM_Driver_Write(37,&Local_Queue_IF))
+	{
+		Nvm_Descriptor_Rec005.Write_Status = Writing_On_Going;
+	}
+}
+
+static void MemIf_Write_Rec006(void)
+{
+	EEROM_Queue Local_Queue_IF;
+	EEPROM_Queue_Create(&Local_Queue_IF);
+
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
+
+	for(u8 i = 0 ; i < 8; i++)
+	{
+		EEPROM_Queue_Push(&Local_Queue_IF,*(Local_Pointer + i));
+
+	}
+
+	Nvm_Descriptor_Rec005.Block_Check_Sum = Check_Sum_calculator(&Nvm_Descriptor_Rec006.Rec006_copy_FD05,8,1);
+
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)Nvm_Descriptor_Rec006.Block_Check_Sum);
+	EEPROM_Queue_Push(&Local_Queue_IF,(u8)(Nvm_Descriptor_Rec006.Block_Check_Sum>>8));
+
+	if(OK_EEPROM == EEPROM_Driver_Write(59,&Local_Queue_IF))
+	{
+		Nvm_Descriptor_Rec006.Write_Status = Writing_On_Going;
 	}
 }
 
@@ -904,6 +1004,32 @@ static void MemIf_Read_Rec004(void)
 
 }
 
+static void MemIf_Read_Rec005(void)
+{
+	if(On_Progress == EEPROM_Driver_Read(37,20,CallBack_Rec005))
+	{
+		Nvm_Descriptor_Rec004.Read_Status = Read_On_Going;
+	}
+	else
+	{
+
+	}
+
+}
+
+static void MemIf_Read_Rec006(void)
+{
+	if(On_Progress == EEPROM_Driver_Read(59,40,CallBack_Rec006))
+	{
+		Nvm_Descriptor_Rec004.Read_Status = Read_On_Going;
+	}
+	else
+	{
+
+	}
+
+}
+
 
 /*------------------Reading Function for each Record --------------------------*/
 
@@ -912,7 +1038,7 @@ static void MemIf_Read_Rec004(void)
 static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer)
 {
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec001.Rec001_copy_FD00.Hardware_Version;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec001.Block_Type) + 1;
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
@@ -976,7 +1102,7 @@ static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer)
 static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer)
 {
 
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec002.Rec002_copy_FD01.Number_Relays_On_Syetem;
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec002.Block_Type) + 1;
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
@@ -1039,7 +1165,7 @@ static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer)
 
 static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer)
 {
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec003.Rec003_copy_FD02.Relay_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec003.Block_Type) + 1;
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
@@ -1103,7 +1229,7 @@ static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer)
 
 static void CallBack_Rec004(void* Modes,void* Mode_Status,void* Pointer)
 {
-	u8 *Local_Pointer = &Nvm_Descriptor_Rec004.Rec004_copy_FD03.Switch_status[0];
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec004.Block_Type) + 1;
 	u8 Local_Data = 0;
 
 	switch (*((u8*)Modes))
@@ -1145,6 +1271,134 @@ static void CallBack_Rec004(void* Modes,void* Mode_Status,void* Pointer)
 			else
 			{
 				Nvm_Descriptor_Rec004.Read_Status = Read_Faild;
+			}
+		break;
+		case Writing:
+			/*if()
+			{
+
+			}
+			else
+			{
+				
+			}*/
+		break;
+		default : 
+
+		break;
+	}
+
+
+}
+
+static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer)
+{
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec005.Block_Type) + 1;
+	u8 Local_Data = 0;
+
+	switch (*((u8*)Modes))
+	{
+		case Reading:
+
+
+			if(OK_EEPROM ==*((u8*)Mode_Status))
+			{
+				for(u8 i = 0 ; i < 8 ; i++) // Data loading
+				{
+					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+					{
+						*(Local_Pointer + i) = Local_Data;
+					}
+					else
+					{
+						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+						break;
+					}
+				}
+
+				Local_Pointer = &Nvm_Descriptor_Rec005.Block_Check_Sum;
+
+				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				{
+					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+					{
+						*(Local_Pointer + i) = Local_Data;
+					}
+					else
+					{
+						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+						break;
+					}
+				}
+				Nvm_Descriptor_Rec005.Read_Status = Read_Done;
+			}
+			else
+			{
+				Nvm_Descriptor_Rec005.Read_Status = Read_Faild;
+			}
+		break;
+		case Writing:
+			/*if()
+			{
+
+			}
+			else
+			{
+				
+			}*/
+		break;
+		default : 
+
+		break;
+	}
+
+
+}
+
+static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer)
+{
+	u8 *Local_Pointer = (&Nvm_Descriptor_Rec006.Block_Type) + 1;
+	u8 Local_Data = 0;
+
+	switch (*((u8*)Modes))
+	{
+		case Reading:
+
+
+			if(OK_EEPROM ==*((u8*)Mode_Status))
+			{
+				for(u8 i = 0 ; i < 8 ; i++) // Data loading
+				{
+					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+					{
+						*(Local_Pointer + i) = Local_Data;
+					}
+					else
+					{
+						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+						break;
+					}
+				}
+
+				Local_Pointer = &Nvm_Descriptor_Rec006.Block_Check_Sum;
+
+				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				{
+					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+					{
+						*(Local_Pointer + i) = Local_Data;
+					}
+					else
+					{
+						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+						break;
+					}
+				}
+				Nvm_Descriptor_Rec006.Read_Status = Read_Done;
+			}
+			else
+			{
+				Nvm_Descriptor_Rec006.Read_Status = Read_Faild;
 			}
 		break;
 		case Writing:

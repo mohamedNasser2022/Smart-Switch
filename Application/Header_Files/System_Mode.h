@@ -26,6 +26,7 @@ static void System_Init_WIFI_Mode_Sequence(void);
 static void System_Fetch_Messages(void);
 static void System_Mode_Message_0x03_Analize(u8* Pointer_Data);
 static void Runnable_System_Mode_Wifi_Init(void);
+static void Runnable_System_Read_Nvm_Data(void);
 static void System_Fetch_Shared_Variables(void);
 static void Push_Button_Task(void);
 
