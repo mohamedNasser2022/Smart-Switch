@@ -10,11 +10,12 @@
 #include"Data_Structure.h"
 #include"RTE.h"
 #include"Rte_Nvm_STD.h"
-#include"Rte_Message_STD.h"
+
 #include"LIB_ERROR.h"
 
 #include"system_mode.h"
 #include"DIO_config.h"
+#include"RTE_Com_ServiceHost.h"
 static volatile u32 system_time_ms;
 
 Idt_Rec005 SSID;
@@ -80,13 +81,17 @@ static void Runnable_System_Mode_Wifi_Init(void)
 	volatile u8 Local_Array_Data[2];
 
 	Rte_Read_System_Mode(&System_Mode_Controller.System_Mode);
+	Idt_Message_0x03_t Local_Read_Message_0x03;
+	Idt_Message_0x01_t Local_Write_Message_0x01;
 	switch (System_Mode_Controller.System_Mode)
 	{
 	case INITIOLAZTION_MODE: /*Shall send Message 0x01 and wait Respond*/
 
 		if (System_Mode_Controller.Mode_Status == UNDEFINED)
 		{
-			Rte_Write_Message_0x01(NUMBER_OF_RELAYS_INTERNAL_ON_CHIP,LENGHT_STATUS_OBJECT_ON_SYSTEM,0);
+			Local_Write_Message_0x01.Number_of_Relays = NUMBER_OF_RELAYS_INTERNAL_ON_CHIP;
+			Local_Write_Message_0x01.Length_of_Status_Message = LENGHT_STATUS_OBJECT_ON_SYSTEM;
+			Rte_Write_Message_0x01(&Local_Write_Message_0x01);
 			
 			System_Mode_Controller.Mode_Status = Sys_OnGoing;
 		}
@@ -94,9 +99,9 @@ static void Runnable_System_Mode_Wifi_Init(void)
 		{
 			
 
-			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Read_Message_0x03))
 			{
-				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == INITIOLAZTION_MODE)
+				if(Local_Read_Message_0x03.Respond == WIFI_OK && Local_Read_Message_0x03.System_Mode == INITIOLAZTION_MODE)
 				{
 					System_Mode_Controller.Mode_Status = Sys_Done;
 				}
@@ -176,9 +181,9 @@ static void Runnable_System_Mode_Wifi_Init(void)
 		{
 			
 
-			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Read_Message_0x03))
 			{
-				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == WIFI_MODE_Stand_by)
+				if(Local_Read_Message_0x03.Respond == WIFI_OK && Local_Read_Message_0x03.System_Mode == WIFI_MODE_Stand_by)
 				{
 					System_Mode_Controller.Mode_Status = Sys_Done;
 				}
@@ -202,9 +207,9 @@ static void Runnable_System_Mode_Wifi_Init(void)
 		case WIFI_MODE_Stand_by:
 
 			
-			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Read_Message_0x03))
 			{
-				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == WIFI_MODE)
+				if(Local_Read_Message_0x03.Respond == WIFI_OK && Local_Read_Message_0x03.System_Mode == WIFI_MODE)
 				{
 					System_Mode_Controller.System_Mode = WIFI_MODE;
 					Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);
@@ -223,9 +228,9 @@ static void Runnable_System_Mode_Wifi_Init(void)
 
 			
 
-			if(Read_Done == Rte_Read_Message_0x03(&Local_Array_Data[0],&Local_Array_Data[1]))
+			if(Read_Done == Rte_Read_Message_0x03(&Local_Read_Message_0x03))
 			{
-				if(Local_Array_Data[0] == WIFI_OK && Local_Array_Data[1] == WIFI_MODE_Stand_by)
+				if(Local_Read_Message_0x03.Respond == WIFI_OK && Local_Read_Message_0x03.System_Mode == WIFI_MODE_Stand_by)
 				{
 					System_Mode_Controller.System_Mode = WIFI_MODE_Stand_by;
 					Rte_Write_System_Mode(&System_Mode_Controller.System_Mode);

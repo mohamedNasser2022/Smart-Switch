@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "data_structure.h": "c",
+        "rte.h": "c",
+        "queue_interface.h": "c"
+    }
+}

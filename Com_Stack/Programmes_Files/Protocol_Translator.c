@@ -15,16 +15,16 @@
 #include"RTE.h"
 #include"System_Main.h"
 #include"Rte_Nvm_STD.h"
-#include"Rte_Message_STD.h"
 
+#include"STD_MessageHost.h"
 
 #include"Comunication_Manger.h"
 #include "Protocol_Translator.h"
 #include "Protocol_Translator_Private.h"
-
+#include"Com_ServiceHost.h"
 volatile u32 Protocol_System_Time_ms = 0;
 static volatile System_Mode ;
-void HAL_voidSmartProtocol_Init(void)
+void Protocol_Init(void)
 {
 
 
@@ -67,7 +67,7 @@ static void Runnable_Read_Messages_Status_10ms(void)
 
 		if(Read_Done == Rte_Read_FD02(&Local_Data))
 		{
-			Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x13,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x13);
+			Adding_Message_Header_Push_Message_Data_To_Comunication_Manger(&Local_Data,MESSAGE_0x13,MESSAGE_LENGTH_0x13);
 		}
 		
 	}
@@ -77,41 +77,8 @@ static void Runnable_Read_Messages_Status_10ms(void)
 
 
 
-static void Runnable_Read_Messages_1ms(void)
-{
-	u8 Local_Data[MAX_NUMER_OF_DATA_LENGTH];
-
-	Idt_Message_0x11_t Local_Message_0x11;
-	
-	if(Read_Done == Rte_Read_Message_0x01(&Local_Data))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x01,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x01);
-	}
-	
-	if(Read_Done == Rte_Read_Message_0x02(&Local_Data))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x02,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x02);
-	}
-	if(Read_Done == Rte_Read_Message_0x14(&Local_Data))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x14,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x14);
-	}
-	if(Read_Done == Rte_Read_Message_0x20(&Local_Data))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x20,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x20);
-	}
-	if(Read_Done == Rte_Read_Message_0x21(&Local_Data))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Data,MESSAGE_0x21,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x21);
-	}
-	if(Read_Done == Rte_Read_Message_0x11(&Local_Message_0x11))
-	{
-		Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(&Local_Message_0x11,0x11,MESSAGE_ARRAY_ELEMENTS_NUMBER_0x11);
-	}
 
 
-
-}
 
 
 u8 Protocol_Translator_Receive_Messages_Comunication_Manger(void *Pointer_Data)
@@ -130,7 +97,7 @@ u8 Protocol_Translator_Receive_Messages_Comunication_Manger(void *Pointer_Data)
 
 }
 
-static void Adding_And_Push_Message_Data_To_Comunication_Manger_Throw_Rte(u8* Pointer_To_Data,u8 copy_MessageID,u8 copy_Data_Length)
+void Adding_Message_Header_Push_Message_Data_To_Comunication_Manger(u8* Pointer_To_Data,u8 copy_MessageID,u8 copy_Data_Length)
 {
 	if(copy_Data_Length < 10)
 	{
@@ -199,42 +166,5 @@ static void Removing_Comunication_Header_Create_Message(void* Pointer_Data)
 	Gate_Way(Local_Array);
 
 }
-
-static void Gate_Way(u8* Message_Data)
-{
-
-
-	switch(Message_Data[0])
-	{
-	case MESSAGE_0x03:
-
-		Rte_Write_Message_0x03(Message_Data[1],Message_Data[2]);
-
-		break;
-	case MESSAGE_0x10:
-
-		Rte_Write_Message_0x10(&Message_Data[1]);
-
-		break;
-
-	case MESSAGE_0x30:
-
-		Rte_Write_FD04(&Message_Data[1]); /*write Data to Nvm*/
-
-		break;
-	case MESSAGE_0x31:
-
-		Rte_Write_FD05(&Message_Data[1]); /*write Data to Nvm*/
-
-		break;
-
-	default:
-
-
-		break;
-	}
-
-}
-
 
 

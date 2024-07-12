@@ -12,7 +12,7 @@
 #include"DIO_config.h"
 #include"RTE.h"
 #include"Rte_Nvm_STD.h"
-#include"Rte_Message_STD.h"
+#include"RTE_Com_ServiceHost.h"
 
 #include"object_Controller.h"
 
@@ -81,9 +81,9 @@ void Object_Periodic(void)
 		{
 			Runnable_Object_Message_0x10_5ms();
 		}
-		if(Object_SW_Time_In_ms % 60000 == 0)
+		if(Object_SW_Time_In_ms % 50 == 0)
 		{
-			Runnable_Object_Auto_Off_1min();
+			Runnable_Object_Auto_Off_50ms();
 		}
 
 
@@ -95,8 +95,12 @@ void Object_Periodic(void)
 	default:
 		break;
 	}
-
-	Runnable_Object_Init_Objects_In_WIFI_1ms();
+	
+	if(Object_SW_Time_In_ms % 10 == 0)
+	{
+		Runnable_Object_Init_Objects_In_WIFI_10ms();
+	}
+	
 }
 
 u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u8 switch_Pin,u32 Time_to_Be_off_In_Seconds)
@@ -136,14 +140,18 @@ u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u
 
 }
 
-static void Runnable_Object_Init_Objects_In_WIFI_1ms(void)
+static void Runnable_Object_Init_Objects_In_WIFI_10ms(void)
 {
 	static volatile u8 i = 0;
 	Rte_Read_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
 
 	if(WIFI_Sequenc_Status == SYSTEM_ENABLE_SEQUENCE)
 	{
-		if(Write_Done == Rte_Write_Message_0x14(Relays[i].Object_WIFI_ID,Relays[i].Object_Number_In_Status_Message))
+		Idt_Message_0x14_t Local_Message_0x14;
+		Local_Message_0x14.Object_ID = Relays[i].Object_WIFI_ID;
+		Local_Message_0x14.Object_Number_In_Status_Message = Relays[i].Object_Number_In_Status_Message;
+
+		if(Write_Done == Rte_Write_Message_0x14(&Local_Message_0x14))
 		{
 			if(i == (NUMBER_OF_RELAYS_INTERNAL_ON_CHIP-1))
 			{
@@ -155,16 +163,16 @@ static void Runnable_Object_Init_Objects_In_WIFI_1ms(void)
 	}
 	else if(WIFI_Sequenc_Status == OBJECT_FINISHED_SEQUENCE)
 	{
-		u8 D0;
-		u8 D1;
-		if(Read_Done == Rte_Read_Message_0x03(&D0,&D1))
+		
+		Idt_Message_0x03_t Local_Message_0x03; 
+		if(Read_Done == Rte_Read_Message_0x03(&Local_Message_0x03))
 		{
-			if(WIFI_OK == D0 && 0x14 == D1)
+			if(WIFI_OK == Local_Message_0x03.Respond && 0x14 == Local_Message_0x03.System_Mode)
 			{
 				WIFI_Sequenc_Status = WIFI_DONE;
 				Rte_Write_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
 			}
-			else if(WIFI_ERROR == D0 && 0x14 == D1)
+			else if(WIFI_ERROR == Local_Message_0x03.Respond && 0x14 == Local_Message_0x03.System_Mode)
 			{
 				WIFI_Sequenc_Status = WIFI_ERROR;
 				Rte_Write_WIFI_Sequenc_Variable(&WIFI_Sequenc_Status);
@@ -188,10 +196,10 @@ static void Runnable_Object_Init_Objects_In_WIFI_1ms(void)
 
 }
 
-static void Runnable_Object_Auto_Off_1min(void)
+static void Runnable_Object_Auto_Off_50ms(void)
 {
 	/* 
-		this runnables comes each 1 minute and check and count time for each relay
+		this runnables comes each 50 ms and check and count time for each relay
 		Rte Interface : Rte_PortControl_Pin_Read()
 						Rte_PortControl_Pin_Level()
 	 */
@@ -206,9 +214,10 @@ static void Runnable_Object_Auto_Off_1min(void)
 
 			if(1 == Local_Relay_State)
 			{
-				Relays[i].Time_Counter++;
+				u32 Local_Time_Compare_in_Second = Relays[i].Timer_Referance * 60000; //Time Referance in mins covert to msecond
+				Relays[i].Time_Counter += 50;
 
-				if(Relays[i].Time_Counter >= Relays[i].Timer_Referance)
+				if(Relays[i].Time_Counter >= Local_Time_Compare_in_Second)
 				{
 					Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); 
 					Relays[i].Time_Counter = 0;
@@ -282,14 +291,14 @@ static void Runnable_Object_Message_0x10_5ms(void)
 	volatile Idt_Message_0x10_t Local_Message_0x10;
 	if(Read_Done == Rte_Read_Message_0x10(&Local_Message_0x10))
 	{
-		switch(Local_Message_0x10.Data[1])
+		switch(Local_Message_0x10.Command)
 		{
 		case Toggle_Command:
 
 
 
 			/*Data[0] contain Wi-Fi ID of object*/
-			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Data[0],&Local_Relay))
+			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Object_ID,&Local_Relay))
 			{
 				Rte_PortControl_Pin_Toggle(Local_Relay->Output_PIN_ID);
 				Rte_PortControl_Pin_Read(Local_Relay->Output_PIN_ID,&Local_Pin_State);
@@ -310,18 +319,18 @@ static void Runnable_Object_Message_0x10_5ms(void)
 			break;
 		case Request_Time_Ref_Read:
 
-			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Data[0],&Local_Relay))
+			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Object_ID,&Local_Relay))
 			{
 				Idt_Message_0x11_t Local_Message_0x11;
 
 				volatile u32 Local_Time_Ref_Data = Local_Relay->Timer_Referance; 
 
-				Local_Message_0x11.Data[0] = Local_Message_0x10.Data[0]; /*Object ID*/
-				Local_Message_0x11.Data[1] = Respond_Message;
-				Local_Message_0x11.Data[2] = ((u8) Local_Time_Ref_Data) ;
-				Local_Message_0x11.Data[3] = ((u8) (Local_Time_Ref_Data >>8)) ;
-				Local_Message_0x11.Data[4] = ((u8) (Local_Time_Ref_Data >>16)) ;
-				Local_Message_0x11.Data[5] = ((u8) (Local_Time_Ref_Data >>24));
+				Local_Message_0x11.Object_ID = Local_Message_0x10.Object_ID; /*Object ID*/
+				Local_Message_0x11.Command = Respond_Message;
+				Local_Message_0x11.Time_Value_Byte_1 = ((u8) Local_Time_Ref_Data) ;
+				Local_Message_0x11.Time_Value_Byte_2 = ((u8) (Local_Time_Ref_Data >>8)) ;
+				Local_Message_0x11.Time_Value_Byte_3 = ((u8) (Local_Time_Ref_Data >>16)) ;
+				Local_Message_0x11.Time_Value_Byte_4 = ((u8) (Local_Time_Ref_Data >>24));
 
 				Rte_Write_Message_0x11(&Local_Message_0x11);
 
@@ -330,15 +339,15 @@ static void Runnable_Object_Message_0x10_5ms(void)
 
 			break;
 		case Time_Change:
-			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Data[0],&Local_Relay))
+			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Object_ID,&Local_Relay))
 			{
 				
 
 				
-				 Local_Relay->Timer_Referance = Local_Message_0x10.Data[2] |
-				 								Local_Message_0x10.Data[3] << 8|
-												Local_Message_0x10.Data[4] << 16 |
-												Local_Message_0x10.Data[5] << 24;
+				 Local_Relay->Timer_Referance = Local_Message_0x10.Time_Value_Byte_1 |
+				 								Local_Message_0x10.Time_Value_Byte_2 << 8|
+												Local_Message_0x10.Time_Value_Byte_3 << 16 |
+												Local_Message_0x10.Time_Value_Byte_4 << 24;
 				
 
 				
