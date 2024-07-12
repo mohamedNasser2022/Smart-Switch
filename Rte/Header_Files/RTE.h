@@ -15,18 +15,12 @@
 #define PROTOCOLTRANSLATOR_AS_SOURCE 5
 #define COMUNICATION_MANGER_AS_SOURCE 10
 
-#define  Rte_ProtocolTranslator_Write_Data_To_Comunication_Manger(POINTER_TO_DATA)  Rte_Send_Port_Comunication_Manger_Protocol_Translator(PROTOCOLTRANSLATOR_AS_SOURCE,POINTER_TO_DATA)
-#define  Rte_Comunication_Manger_Write_Data_To_ProtocolTranslator(POINTER_TO_DATA)  Rte_Send_Port_Comunication_Manger_Protocol_Translator(COMUNICATION_MANGER_AS_SOURCE,POINTER_TO_DATA)
-
-#define Rte_ProtocolTranslator_Read_Data_From_Comunication_Manger(POINTER_TO_DATA)  Rte_Read_Port_Comunication_Manger_Protocol_Translator(COMUNICATION_MANGER_AS_SOURCE,POINTER_TO_DATA)
-#define Rte_Comunication_Manger_Read_Data_From_ProtocolTranslator(POINTER_TO_DATA)  Rte_Read_Port_Comunication_Manger_Protocol_Translator(PROTOCOLTRANSLATOR_AS_SOURCE,POINTER_TO_DATA)
 
 typedef u8 STD_Returns ;
 #define E_OK   1
 #define NOT_OK 0
 
-u8 Rte_Send_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncation_Manger_Interface* Pointer_To_Data);
-u8 Rte_Read_Port_Comunication_Manger_Protocol_Translator(u8 copy_Source,Comuncation_Manger_Interface_Nested *Pointer_to_Data);
+
 
 /*----------------------------------------------------------------------------------------------------------*/
 

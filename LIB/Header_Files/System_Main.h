@@ -12,12 +12,12 @@
 #define BOOT_HALT  0x00
 
 /*System Parameters*/
-#define NUMBER_OF_RELAYS_INTERNAL_ON_CHIP               4
-#define LENGHT_STATUS_OBJECT_ON_SYSTEM        8
+#define NUMBER_OF_RELAYS_INTERNAL_ON_CHIP               7
+#define LENGHT_STATUS_OBJECT_ON_SYSTEM                  8
 
 
 
-#define PROTOCOL_DATA_LENGTH         6
+
 
 
 /*System mode*/
@@ -44,8 +44,7 @@ enum
     WIFI_ERROR_SEQUENCE   ,      
     OBJECT_DATA_LOADED_DONE,
     OBJECT_DATA_LOADED_ERROR,
-      
-    
+         
 }Sys_Modes;
 
 

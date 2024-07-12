@@ -49,8 +49,11 @@ void DIO_Expander_Com_Initialization(void)
 	DIO_Registers_Data.RegClock = 0x40;
 	Nested_Queue3_Create(&Buffer_Sending_Data);
 	DIO_Expander_System_Mode.Expander_MODE = Reset;
-	MGPIO_voidSetPinDirection(Hardware_PIN28,OUTPUT_SPEED_2MHZ_PP);
+	MGPIO_voidSetPinDirection(Hardware_PIN15,OUTPUT_SPEED_2MHZ_PP); // Rest pin of I/O expander
 
+	MGPIO_voidSetPinDirection(Hardware_PIN16,OUTPUT_SPEED_2MHZ_PP);
+	MGPIO_voidSetPinValue(Hardware_PIN16,0);
+	MGPIO_voidSetPinValue(Hardware_PIN16,1);
 }
 
 
@@ -115,7 +118,7 @@ void DIO_Expander_Com_Time(void)
 	DIO_Expander_System_Time_ms ++;
 	if(Normal == DIO_Expander_System_Mode.Expander_MODE)
 	{
-		if(DIO_Expander_System_Time_ms % 10 == 0)
+		if(DIO_Expander_System_Time_ms % 100 == 0)
 		{
 			Request_of_Reading(Address_RegInputDisableB,37);
 		}

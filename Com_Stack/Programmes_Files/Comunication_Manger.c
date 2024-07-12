@@ -50,8 +50,7 @@ void comunication_Manger_Polling(void)
 {
 
 
-	/*Comunication_Manger_Fetch_Data_From_Rte();
-	Comunication_Manger_Send_Data_to_Rte();*/
+	
 	Comunication_Manger_ParseData_to_Comunication_ID();
 
 	Uart_Manger_ContinousPolling();
@@ -60,12 +59,6 @@ void comunication_Manger_Polling(void)
 
 /*---------------------*/
 
-u8 Comunication_Manger_Send_Messages_to_Prtocol_Translator(void *Pointer_to_Queue)
-{
-
-	Protocol_Translator_Receive_Messages_From_Comunication_Manger(Pointer_to_Queue);
-
-}
 
 
 

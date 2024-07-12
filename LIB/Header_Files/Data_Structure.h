@@ -11,7 +11,7 @@
 
 #include"Lib.h"
 
-#include"Writing_Message_Stratage.h"
+
 
 #ifndef DATA_STRUCTURE_H_
 #define DATA_STRUCTURE_H_

@@ -92,10 +92,10 @@ u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u
 
 /*Private Functions*/
 
-static void Runnable_Object_Init_Objects_In_WIFI_1ms(void);
+static void Runnable_Object_Init_Objects_In_WIFI_10ms(void);
 static void Runnable_Object_Message_0x10_5ms(void);
 static u8 Get_Search_About_WIFI_ID(u8 copy_ID,Relay_t** Pointer_Relay);
-static void Runnable_Object_Auto_Off_1min(void);
+static void Runnable_Object_Auto_Off_50ms(void);
 static void Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms(void);
 static void Runnable_Object_Update_Relays_And_Switch_Status_10ms(void);
 static void Runnable_Object_Update_Relays_Status_10ms(void);
