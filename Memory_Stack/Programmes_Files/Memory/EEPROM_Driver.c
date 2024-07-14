@@ -165,7 +165,7 @@ u8 EEPROM_Driver_Read(u16 copy_Reading_Starting_from,u8 Lenght_of_Reading,void (
 	Queue3_Push(&Local_Data,(u8)copy_Reading_Starting_from);
 	if(EEPROM_Driver_System_Mode.EEPROM_MODE == Normal)
 	{
-		if(EEPROM_Driver_Read_From_Hardware(copy_Reading_Starting_from,&Local_Data,Lenght_of_Reading) )
+		if(I2C_Request_Faild != EEPROM_Driver_Read_From_Hardware(copy_Reading_Starting_from,&Local_Data,Lenght_of_Reading) )
 		{
 			EEPROM_Driver_System_Mode.EEPROM_MODE = Reading;
 			EEPROM_Call_Back = Pointer_Function;
