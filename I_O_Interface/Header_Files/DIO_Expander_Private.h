@@ -173,6 +173,6 @@ union
 
 /*-----------------------------static Functions---------------------------------------*/
 static void Special_Function_To_SET_CLR(u8* Pointer,u8 Pin_No,u8 Boolean);
-
+static void Expanded_Test_Address(void);
 
 #endif /* I_O_INTERFACE_HEADER_FILES_DIO_EXPANDER_PRIVATE_H_ */

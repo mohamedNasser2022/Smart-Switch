@@ -125,9 +125,13 @@ static void I2C_TimeOut(void)  /*this function shall return I2C to Ideal Mode*/
 			CLR_BIT(I2C_Peripheral_No_1_Handler.I2C_Peripheral_Registers->I2C_SR1,10);
 			u8 Local = I2C_Request_Faild;
 			Local_Requested_Address = 0;
+
 			if(I2C_Send_Address_check_Request == I2C_Peripheral_No_1_Handler.Bus_Mode )
 			{
+				I2C_Peripheral_No_1_Handler.Bus_Mode = I2C_Busy;
+				Local = I2C_Error_Address;
 				Call_Back(&Local);
+				Call_Back = (void*)0;
 			}
 
 
@@ -385,7 +389,7 @@ u8 I2C_Manger_Parse_Data_to_I2C_Hardware(u8 copy_u8I2C_ID,u8 copy_u8Address,Arra
 
 u8 I2C_Push_Data_To_Buffer(u8 copy_Mode,u8 copy_u8I2C_ID,u8 copy_u8Address,void* Pointer_to_Data,u8 copy_Number_of_bytes_to_Be_Read,void (*Pointer_Function)(void*))
 {
-
+	static volatile u8 Funtion_in_using = 0;
 	I2C_Data_Controller *Pointer_to_Perpherail_Controller;
 
 	u8 Local_Data = 0;
@@ -414,27 +418,38 @@ u8 I2C_Push_Data_To_Buffer(u8 copy_Mode,u8 copy_u8I2C_ID,u8 copy_u8Address,void*
 	Queue3_Push(&Local_Queue,copy_Mode); 	   /*Push Mode*/
 	Queue3_Push(&Local_Queue,copy_u8Address); /*Push Addresses*/
 
-	if(I2C_Read_Request == copy_Mode)
+	if(Funtion_in_using == 0&&!Nested_Queue3_Full(&Pointer_to_Perpherail_Controller->Buffer->Queue_Of_Requests))
 	{
-		Queue3_Push(&Local_Queue,copy_Number_of_bytes_to_Be_Read); /*Push Lenght of reading*/
-		Queue4_Push(&Pointer_to_Perpherail_Controller->Buffer->Function_Pointer,Pointer_Function); /*Push Function*/
-	}
-	else
-	{
-		if(I2C_Send_notify_Request == copy_Mode || I2C_Send_Address_check_Request == copy_Mode)
+		Funtion_in_using = 1;
+
+
+		if(I2C_Read_Request == copy_Mode)
 		{
+			Queue3_Push(&Local_Queue,copy_Number_of_bytes_to_Be_Read); /*Push Lenght of reading*/
 			Queue4_Push(&Pointer_to_Perpherail_Controller->Buffer->Function_Pointer,Pointer_Function); /*Push Function*/
 		}
+		else
+		{
+			if(I2C_Send_notify_Request == copy_Mode || I2C_Send_Address_check_Request == copy_Mode)
+			{
+				Queue4_Push(&Pointer_to_Perpherail_Controller->Buffer->Function_Pointer,Pointer_Function); /*Push Function*/
+			}
 
-	}
+		}
 
-	while(Queue3_Pop(Pointer_to_Data,&Local_Data))
-	{
-		Queue3_Push(&Local_Queue,Local_Data); /*Push Lenght of reading*/
-	}
-	if(Nested_Queue3_Push(&Pointer_to_Perpherail_Controller->Buffer->Queue_Of_Requests,&Local_Queue))
-	{
+		while(Queue3_Pop(Pointer_to_Data,&Local_Data))
+		{
+			Queue3_Push(&Local_Queue,Local_Data); /*Push Lenght of reading*/
+		}
+		if(Nested_Queue3_Push(&Pointer_to_Perpherail_Controller->Buffer->Queue_Of_Requests,&Local_Queue))
+		{
 
+		}
+		else
+		{
+			Local_Return = I2C_Request_Faild;
+		}
+		Funtion_in_using = 0;
 	}
 	else
 	{

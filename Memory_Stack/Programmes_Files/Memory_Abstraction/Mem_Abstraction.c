@@ -197,16 +197,20 @@ void MemIf_Time(void)
 
 static void MemIF_Module_Modes_Switching(void)
 {
+	static volatile u8 loca_ = 0;
 	switch (MemIf_Controller.Module_Mode)
 	{
 	case MemIf_Initialization:
 
 		if(MemIf_Undefined == MemIf_Controller.current_Mode_Status)
 		{
+
 			if(On_Progress == EEPROM_Driver_Read(128,16,Notification_Handler_Physical_Layer))
 			{
 				MemIf_Controller.current_Mode_Status = MemIf_OnGoing;
 			}
+
+
 		}
 		else if(MemIf_Controller.current_Mode_Status == MemIf_Done)
 		{
@@ -229,7 +233,7 @@ static void MemIF_Module_Modes_Switching(void)
 		break;
 
 	case MemIf_Reading:
-		
+
 		/*Loading All Data From Nvm*/
 		if(MemIf_Controller.current_Mode_Status == MemIf_Undefined)
 		{
@@ -663,17 +667,21 @@ static void MemIf_Loading_Nvm_Manger_Data(void *Pointer) /* load data from EERPO
 static u8 MemIf_Nvm_Read_All(void)
 {
 	u8 Local_Return = MemIf_Busy;
-	
+
 	if(Undefined == Nvm_Descriptor_Rec001.Read_Status)
 	{
 		MemIf_Read_Rec001();
 		Local_Return = MemIf_Busy;
 	}
-	else
+	else if(Read_Done == Nvm_Descriptor_Rec001.Read_Status)
 	{
 		Local_Return = MemIf_Ok;
 	}
-	
+	else
+	{
+
+	}
+
 
 	if(Undefined == Nvm_Descriptor_Rec002.Read_Status)
 	{
@@ -713,7 +721,7 @@ static u8 MemIf_Nvm_Read_All(void)
 	{
 		Local_Return |= MemIf_Ok;
 	}
-		if(Undefined == Nvm_Descriptor_Rec006.Read_Status)
+	if(Undefined == Nvm_Descriptor_Rec006.Read_Status)
 	{
 		MemIf_Read_Rec006();
 		Local_Return = MemIf_Busy;
@@ -1030,7 +1038,7 @@ static void MemIf_Read_Rec005(void)
 	u8 Data_Lenght = (sizeof(Idt_Rec005)/sizeof(u8)) +  (sizeof(u16)/sizeof(u8));
 	if(On_Progress == EEPROM_Driver_Read(37,Data_Lenght,CallBack_Rec005))
 	{
-		Nvm_Descriptor_Rec004.Read_Status = Read_On_Going;
+		Nvm_Descriptor_Rec005.Read_Status = Read_On_Going;
 	}
 	else
 	{
@@ -1044,7 +1052,7 @@ static void MemIf_Read_Rec006(void)
 	u8 Data_Lenght = (sizeof(Idt_Rec006)/sizeof(u8)) +  (sizeof(u16)/sizeof(u8));
 	if(On_Progress == EEPROM_Driver_Read(59,Data_Lenght,CallBack_Rec006))
 	{
-		Nvm_Descriptor_Rec004.Read_Status = Read_On_Going;
+		Nvm_Descriptor_Rec005.Read_Status = Read_On_Going;
 	}
 	else
 	{
@@ -1065,56 +1073,56 @@ static void CallBack_Rec001(void* Modes,void* Mode_Status,void* Pointer)
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
-		case Reading:
+	case Reading:
 
 
-			if(OK_EEPROM ==*((u8*)Mode_Status))
+		if(OK_EEPROM ==*((u8*)Mode_Status))
+		{
+			for(u8 i = 0 ; i < 6 ; i++) // Data loading
 			{
-				for(u8 i = 0 ; i < 6 ; i++) // Data loading
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					*(Local_Pointer + i) = Local_Data;
 				}
-
-				Local_Pointer = &Nvm_Descriptor_Rec001.Block_Check_Sum;
-
-				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				else
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
 				}
-				Nvm_Descriptor_Rec001.Read_Status = Read_Done;
 			}
-			else
+
+			Local_Pointer = &Nvm_Descriptor_Rec001.Block_Check_Sum;
+
+			for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
 			{
-				Nvm_Descriptor_Rec001.Read_Status = Read_Faild;
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+				{
+					*(Local_Pointer + i) = Local_Data;
+				}
+				else
+				{
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
+				}
 			}
+			Nvm_Descriptor_Rec001.Read_Status = Read_Done;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec001.Read_Status = Read_Faild;
+		}
 		break;
-		case Writing:
-			/*if()
+	case Writing:
+		/*if()
 			{
 
 			}
 			else
 			{
-				
+
 			}*/
 		break;
-		default : 
+	default :
 
 		break;
 	}
@@ -1129,56 +1137,56 @@ static void CallBack_Rec002(void* Modes,void* Mode_Status,void* Pointer)
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
-		case Reading:
+	case Reading:
 
 
-			if(OK_EEPROM ==*((u8*)Mode_Status))
+		if(OK_EEPROM ==*((u8*)Mode_Status))
+		{
+			for(u8 i = 0 ; i < 4 ; i++) // Data loading
 			{
-				for(u8 i = 0 ; i < 4 ; i++) // Data loading
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					*(Local_Pointer + i) = Local_Data;
 				}
-
-				Local_Pointer = &Nvm_Descriptor_Rec002.Block_Check_Sum;
-
-				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				else
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
 				}
-				Nvm_Descriptor_Rec002.Read_Status = Read_Done;
 			}
-			else
+
+			Local_Pointer = &Nvm_Descriptor_Rec002.Block_Check_Sum;
+
+			for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
 			{
-				Nvm_Descriptor_Rec002.Read_Status = Read_Faild;
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+				{
+					*(Local_Pointer + i) = Local_Data;
+				}
+				else
+				{
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
+				}
 			}
+			Nvm_Descriptor_Rec002.Read_Status = Read_Done;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec002.Read_Status = Read_Faild;
+		}
 		break;
-		case Writing:
-			/*if()
+	case Writing:
+		/*if()
 			{
 
 			}
 			else
 			{
-				
+
 			}*/
 		break;
-		default : 
+	default :
 
 		break;
 	}
@@ -1192,57 +1200,57 @@ static void CallBack_Rec003(void* Modes,void* Mode_Status,void* Pointer)
 	u8 Local_Data = 0;
 	switch (*((u8*)Modes))
 	{
-		case Reading:
+	case Reading:
 
 
 
-			if(OK_EEPROM ==*((u8*)Mode_Status))
+		if(OK_EEPROM ==*((u8*)Mode_Status))
+		{
+			for(u8 i = 0 ; i < 8 ; i++) // Data loading
 			{
-				for(u8 i = 0 ; i < 8 ; i++) // Data loading
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					*(Local_Pointer + i) = Local_Data;
 				}
-
-				Local_Pointer = &Nvm_Descriptor_Rec003.Block_Check_Sum;
-
-				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				else
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
 				}
-				Nvm_Descriptor_Rec003.Read_Status = Read_Done;
 			}
-			else
+
+			Local_Pointer = &Nvm_Descriptor_Rec003.Block_Check_Sum;
+
+			for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
 			{
-				Nvm_Descriptor_Rec003.Read_Status = Read_Faild;
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+				{
+					*(Local_Pointer + i) = Local_Data;
+				}
+				else
+				{
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
+				}
 			}
+			Nvm_Descriptor_Rec003.Read_Status = Read_Done;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec003.Read_Status = Read_Faild;
+		}
 		break;
-		case Writing:
-			/*if()
+	case Writing:
+		/*if()
 			{
 
 			}
 			else
 			{
-				
+
 			}*/
 		break;
-		default : 
+	default :
 
 		break;
 	}
@@ -1257,56 +1265,56 @@ static void CallBack_Rec004(void* Modes,void* Mode_Status,void* Pointer)
 
 	switch (*((u8*)Modes))
 	{
-		case Reading:
+	case Reading:
 
 
-			if(OK_EEPROM ==*((u8*)Mode_Status))
+		if(OK_EEPROM ==*((u8*)Mode_Status))
+		{
+			for(u8 i = 0 ; i < 8 ; i++) // Data loading
 			{
-				for(u8 i = 0 ; i < 8 ; i++) // Data loading
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					*(Local_Pointer + i) = Local_Data;
 				}
-
-				Local_Pointer = &Nvm_Descriptor_Rec004.Block_Check_Sum;
-
-				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				else
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
 				}
-				Nvm_Descriptor_Rec004.Read_Status = Read_Done;
 			}
-			else
+
+			Local_Pointer = &Nvm_Descriptor_Rec004.Block_Check_Sum;
+
+			for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
 			{
-				Nvm_Descriptor_Rec004.Read_Status = Read_Faild;
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+				{
+					*(Local_Pointer + i) = Local_Data;
+				}
+				else
+				{
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
+				}
 			}
+			Nvm_Descriptor_Rec004.Read_Status = Read_Done;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec004.Read_Status = Read_Faild;
+		}
 		break;
-		case Writing:
-			/*if()
+	case Writing:
+		/*if()
 			{
 
 			}
 			else
 			{
-				
+
 			}*/
 		break;
-		default : 
+	default :
 
 		break;
 	}
@@ -1322,56 +1330,56 @@ static void CallBack_Rec005(void* Modes,void* Mode_Status,void* Pointer)
 
 	switch (*((u8*)Modes))
 	{
-		case Reading:
+	case Reading:
 
 
-			if(OK_EEPROM == *((u8*)Mode_Status))
+		if(OK_EEPROM == *((u8*)Mode_Status))
+		{
+			for(u8 i = 0 ; i < Data_Lenght ; i++) // Data loading
 			{
-				for(u8 i = 0 ; i < Data_Lenght ; i++) // Data loading
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					*(Local_Pointer + i) = Local_Data;
 				}
-
-				Local_Pointer = &Nvm_Descriptor_Rec005.Block_Check_Sum;
-
-				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				else
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
 				}
-				Nvm_Descriptor_Rec005.Read_Status = Read_Done;
 			}
-			else
+
+			Local_Pointer = &Nvm_Descriptor_Rec005.Block_Check_Sum;
+
+			for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
 			{
-				Nvm_Descriptor_Rec005.Read_Status = Read_Faild;
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+				{
+					*(Local_Pointer + i) = Local_Data;
+				}
+				else
+				{
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
+				}
 			}
+			Nvm_Descriptor_Rec005.Read_Status = Read_Done;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec005.Read_Status = Read_Faild;
+		}
 		break;
-		case Writing:
-			/*if()
+	case Writing:
+		/*if()
 			{
 
 			}
 			else
 			{
-				
+
 			}*/
 		break;
-		default : 
+	default :
 
 		break;
 	}
@@ -1386,56 +1394,56 @@ static void CallBack_Rec006(void* Modes,void* Mode_Status,void* Pointer)
 	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
 	switch (*((u8*)Modes))
 	{
-		case Reading:
+	case Reading:
 
 
-			if(OK_EEPROM ==*((u8*)Mode_Status))
+		if(OK_EEPROM ==*((u8*)Mode_Status))
+		{
+			for(u8 i = 0 ; i < Data_Lenght ; i++) // Data loading
 			{
-				for(u8 i = 0 ; i < Data_Lenght ; i++) // Data loading
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					*(Local_Pointer + i) = Local_Data;
 				}
-
-				Local_Pointer = &Nvm_Descriptor_Rec006.Block_Check_Sum;
-
-				for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
+				else
 				{
-					if(EEPROM_Queue_Pop(Pointer,&Local_Data))
-					{
-						*(Local_Pointer + i) = Local_Data;
-					}
-					else
-					{
-						MemIf_Controller.Module_Mode =  MemIf_Stand_by;
-						break;
-					}
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
 				}
-				Nvm_Descriptor_Rec006.Read_Status = Read_Done;
 			}
-			else
+
+			Local_Pointer = &Nvm_Descriptor_Rec006.Block_Check_Sum;
+
+			for(u8 i = 0 ; i < 2 ; i++) // CheckSum loading
 			{
-				Nvm_Descriptor_Rec006.Read_Status = Read_Faild;
+				if(EEPROM_Queue_Pop(Pointer,&Local_Data))
+				{
+					*(Local_Pointer + i) = Local_Data;
+				}
+				else
+				{
+					MemIf_Controller.Module_Mode =  MemIf_Stand_by;
+					break;
+				}
 			}
+			Nvm_Descriptor_Rec006.Read_Status = Read_Done;
+		}
+		else
+		{
+			Nvm_Descriptor_Rec006.Read_Status = Read_Faild;
+		}
 		break;
-		case Writing:
-			/*if()
+	case Writing:
+		/*if()
 			{
 
 			}
 			else
 			{
-				
+
 			}*/
 		break;
-		default : 
+	default :
 
 		break;
 	}
@@ -1457,7 +1465,7 @@ static void Notification_Handler_Physical_Layer(void* Modes,void* Mode_Status,vo
 			MemIf_Loading_Nvm_Manger_Data(Pointer);
 			MemIf_Controller.current_Mode_Status = MemIf_Done;
 		}
-		
+
 
 		break;
 

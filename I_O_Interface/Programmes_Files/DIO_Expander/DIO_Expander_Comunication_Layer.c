@@ -20,7 +20,9 @@
 
 struct
 {
-	u8 Expander_MODE:2;
+	u8 Expander_MODE:4;
+	u8 Expander_Running:1;
+	u8 Faild_counter:3;
 
 }DIO_Expander_System_Mode;
 
@@ -29,6 +31,7 @@ enum
 	Undefined,
 	Normal,
 	Reset,
+	Test,
 	Faild,
 	Wait,
 	Busy,
@@ -51,17 +54,21 @@ void DIO_Expander_Com_Initialization(void)
 	DIO_Expander_System_Mode.Expander_MODE = Reset;
 	MGPIO_voidSetPinDirection(Hardware_PIN15,OUTPUT_SPEED_2MHZ_PP); // Rest pin of I/O expander
 
-	MGPIO_voidSetPinDirection(Hardware_PIN16,OUTPUT_SPEED_2MHZ_PP);
+	/*MGPIO_voidSetPinDirection(Hardware_PIN16,OUTPUT_SPEED_2MHZ_PP);
 	MGPIO_voidSetPinValue(Hardware_PIN16,0);
-	MGPIO_voidSetPinValue(Hardware_PIN16,1);
+	MGPIO_voidSetPinValue(Hardware_PIN16,1);*/
 }
 
 
 void DIO_Expander_Com_Polling(void)
 {
 
+
 	DIO_Expander_Com_Check_If_Updates_Needed();
-	DIO_Expander_Com_Check_Buffer_And_Send_Data_To_Physical_Layer();
+
+
+
+
 	//test();
 }
 
@@ -105,7 +112,7 @@ static void DIO_Reseting(void)
 		{
 			Nested_Queue3_Push(&Buffer_Sending_Data,&Local_Data);
 		}
-		DIO_Expander_System_Mode.Expander_MODE = Normal;
+		DIO_Expander_System_Mode.Expander_MODE = Test;
 	}
 
 
@@ -118,6 +125,7 @@ void DIO_Expander_Com_Time(void)
 	DIO_Expander_System_Time_ms ++;
 	if(Normal == DIO_Expander_System_Mode.Expander_MODE)
 	{
+		DIO_Expander_Com_Check_Buffer_And_Send_Data_To_Physical_Layer();
 		if(DIO_Expander_System_Time_ms % 100 == 0)
 		{
 			Request_of_Reading(Address_RegInputDisableB,37);
@@ -125,7 +133,16 @@ void DIO_Expander_Com_Time(void)
 	}
 	else if(Reset == DIO_Expander_System_Mode.Expander_MODE)
 	{
+		DIO_Expander_System_Mode.Expander_Running = 1;
 		DIO_Reseting();
+	}
+	else if(Test == DIO_Expander_System_Mode.Expander_MODE)
+	{
+		Expanded_Test_Address();
+	}
+	else
+	{
+
 	}
 
 
@@ -133,6 +150,34 @@ void DIO_Expander_Com_Time(void)
 }
 
 /*-----------------------------------Private Functions------------------------------------------------------*/
+
+static void Expanded_Test_Address(void)
+{
+	// this get call each 1 ms
+	if(DIO_Expander_System_Mode.Faild_counter == 5)
+	{
+		DIO_Expander_System_Mode.Expander_MODE = 0;
+	}
+	else
+	{
+		if(DIO_Expander_System_Mode.Expander_Running == 0)
+		{
+			DIO_Expander_System_Mode.Expander_MODE = Reset;
+			DIO_Expander_System_Mode.Faild_counter++;
+		}
+		else
+		{
+
+			Request_Checking_Device_Address_I2C(DIO_Expander_ADDRESS,Notification_Handler_I2C);
+		}
+	}
+
+
+
+
+
+
+}
 
 static void DIO_Expander_Com_Check_If_Updates_Needed(void)
 {
@@ -237,7 +282,7 @@ static u8 Request_of_Reading(u8 copy_Reading_Starting_from,u8 Lenght_of_Reading)
 		if(Reconfigure_Read_Pointer(copy_Reading_Starting_from))
 		{
 			Queue3_Push(&Local_Data,copy_Reading_Starting_from);
-			if(0 != DIO_Expander_Reading_From_Chip(&Local_Data,Lenght_of_Reading,Notification_Handler_I2C))
+			if(I2C_Request_Faild != DIO_Expander_Reading_From_Chip(&Local_Data,Lenght_of_Reading,Notification_Handler_I2C))
 			{
 				DIO_Expander_Reading_Controller.Reading_On_Going = 1;
 			}
@@ -275,31 +320,63 @@ static u8 Reconfigure_Read_Pointer(u8 Register_Address)
 static void Notification_Handler_I2C(void* ptr)
 {
 	u8 Local_Data ;
-	if(1 == DIO_Expander_Reading_Controller.Reading_On_Going)
+	switch (DIO_Expander_System_Mode.Expander_MODE)
 	{
-		if(*((u8*)ptr) == I2C_Request_Faild)
+
+	case Normal:
+		if(1 == DIO_Expander_Reading_Controller.Reading_On_Going)
 		{
-			DIO_Expander_Reading_Controller.Reading_On_Going = 0;
-			DIO_Expander_System_Mode.Expander_MODE = Reset;
+			if(*((u8*)ptr) == I2C_Request_Faild)
+			{
+				DIO_Expander_Reading_Controller.Reading_On_Going = 0;
+				DIO_Expander_System_Mode.Expander_MODE = Reset;
+
+			}
+			else
+			{
+				while(Queue3_Pop(ptr,&Local_Data))
+				{
+					*DIO_Expander_Reading_Controller.Read_Pointer = Local_Data;
+
+					DIO_Expander_Reading_Controller.Read_Pointer++;
+				}
+				DIO_Expander_Reading_Controller.Reading_On_Going = 0;
+
+			}
 
 		}
 		else
 		{
-			while(Queue3_Pop(ptr,&Local_Data))
-			{
-				*DIO_Expander_Reading_Controller.Read_Pointer = Local_Data;
 
-				DIO_Expander_Reading_Controller.Read_Pointer++;
-			}
-			DIO_Expander_Reading_Controller.Reading_On_Going = 0;
+		}
+		break;
+	case Test:
+
+		if(*((u8*)ptr) == I2C_Valid_Address)
+		{
+			DIO_Expander_System_Mode.Expander_MODE = Normal;
+			DIO_Expander_System_Mode.Expander_Running = 1;
+		}
+		else if(*((u8*)ptr) ==  I2C_Error_Address)
+		{
+
+			DIO_Expander_System_Mode.Expander_Running = 0;
+
+
+
+		}
+		else
+		{
 
 		}
 
-	}
-	else
-	{
+		break;
 
+	default:
+		break;
 	}
+
+
 }
 
 

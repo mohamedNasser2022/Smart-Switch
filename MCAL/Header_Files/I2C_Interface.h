@@ -26,6 +26,8 @@ enum {
 	I2C_Request_Done,
 	I2C_Request_Faild,
 
+	I2C_Busy = 0xF0,
+
 }I2C_Requests_Enum;
 
 /*
