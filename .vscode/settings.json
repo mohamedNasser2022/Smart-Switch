@@ -4,6 +4,8 @@
         "rte.h": "c",
         "queue_interface.h": "c",
         "dio_expander_private.h": "c",
-        "input_output_interface.h": "c"
+        "input_output_interface.h": "c",
+        "dio_config.h": "c",
+        "rte_com_servicehost.h": "c"
     }
 }

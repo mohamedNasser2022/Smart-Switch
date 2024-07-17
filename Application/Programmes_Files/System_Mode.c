@@ -46,10 +46,10 @@ void System_Init(void)
 
 	MGPIO_voidSetPinDirection(Hardware_PIN16,OUTPUT_SPEED_2MHZ_PP); // Wifi Power Pin
 
-	MGPIO_voidSetPinValue(Hardware_PIN16,0);
+	
 	MGPIO_voidSetPinValue(Hardware_PIN16,1);
 	MGPIO_voidSetPinValue(Hardware_PIN16,0);
-
+	MSTK_voidSetBusyWait(1000000*4);
 
 
 }
