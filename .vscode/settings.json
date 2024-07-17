@@ -2,6 +2,8 @@
     "files.associations": {
         "data_structure.h": "c",
         "rte.h": "c",
-        "queue_interface.h": "c"
+        "queue_interface.h": "c",
+        "dio_expander_private.h": "c",
+        "input_output_interface.h": "c"
     }
 }

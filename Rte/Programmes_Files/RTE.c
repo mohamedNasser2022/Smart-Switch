@@ -89,9 +89,9 @@ void RTE_Init(void)
 	/*-----------------------------------------------------------*/
 	Nested_Queue0_Create(&Buffer_ProtocolTranslator_Send_Comunication);
 	Nested_Queue0_Create(&Buffer_Comunication_Send_ProtocolTranslator);
+	System_Init(); /* this shall be before UART conf*/
 	Comunication_Manger_Init();
 	Protocol_Init();
-	System_Init();
 	Object_Init();
 	I_O_Interface_Initialization();
 	MemIf_Init();

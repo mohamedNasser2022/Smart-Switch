@@ -43,30 +43,6 @@ u8 Object_Relays_Switches_Initialization(void)
 		else{
 			Local_Return = ERROR;
 		}
-
-		if(SUCCESS == Relay_Initilaizations(OBJECT_NO_ON_SYSTEM_54,OBJECT_WIFI_ID_54,OBJECT_RELAY_OUTPUT_54,OBJECT_SWITCH_INPUT_54,OBJECT_TURN_OFF_TIME_54))
-		{
-			
-		}
-		else{
-			Local_Return = ERROR;
-		}
-
-		if(SUCCESS == Relay_Initilaizations(OBJECT_NO_ON_SYSTEM_55,OBJECT_WIFI_ID_55,OBJECT_RELAY_OUTPUT_55,OBJECT_SWITCH_INPUT_55,OBJECT_TURN_OFF_TIME_55))
-		{
-			
-		}
-		else{
-			Local_Return = ERROR;
-		}
-
-		if(SUCCESS == Relay_Initilaizations(OBJECT_NO_ON_SYSTEM_56,OBJECT_WIFI_ID_56,OBJECT_RELAY_OUTPUT_56,OBJECT_SWITCH_INPUT_56,OBJECT_TURN_OFF_TIME_56))
-		{
-			
-		}
-		else{
-			Local_Return = ERROR;
-		}
 	}
 	else{
 		Local_Return = ERROR;

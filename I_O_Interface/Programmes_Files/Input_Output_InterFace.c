@@ -42,12 +42,12 @@ void I_O_Interface_Initialization(void)
 
 void I_O_Interface_Polling(void)
 {
-	DIO_Expander_Polling();
+	//DIO_Expander_Polling();
 }
 
 void I_O_Interface_Periodic(void)
 {
-	DIO_Expander_Time();
+	//DIO_Expander_Time();
 }
 
 u8 I_O_Interface_Init_Pin(u8 copy_Pin_ID,u8 copy_Pin_Mode)
@@ -224,32 +224,63 @@ static u8 IO_Hardware_Switching_on_Input_Number(u8 copy_Pin_ID)
 			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_5_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_6:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_6_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_6_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_7:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_7_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_7_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_8:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_8_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_8_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_9:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_9_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_9_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_10:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_10_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_10_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_11:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_11_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_11_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_12:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_12_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_12_DIO_PHYSICAL);
 		break;
 		case VIRTUAL_PIN_13:
-			Splite_into_ports_and_Pins(PORTS_DONT_CARE,INPUT_OUTPUT_PIN_13_DIO_PHYSICAL);
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_13_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_14:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_14_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_15:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_15_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_16:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_16_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_17:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_17_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_18:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_18_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_19:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_19_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_20:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_20_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_21:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_21_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_22:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_22_DIO_PHYSICAL);
+		break;
+		case VIRTUAL_PIN_23:
+			Splite_into_ports_and_Pins(INPUT_OUTPUT_PIN_23_DIO_PHYSICAL);
 		break;
 		default:
-		Local_Return = 0;
+			Local_Return = 0;
 		break;
+
 		}
 	return Local_Return;
 }

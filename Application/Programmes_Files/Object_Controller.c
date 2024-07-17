@@ -407,16 +407,16 @@ static void Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms(void)
 
 		if((1 == Relays[i].Pointer_Switch->Current_State_Pin) && (0 == Relays[i].Pointer_Switch->Last_State_Pin))
 		{
-			/*Rising edge detected  -> switch object on */
-			Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,1); /*Write High*/
-
+			/*Rising edge detected  -> switch object off */
+			Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); /*Write Low*/
+			Relays[i].Time_Counter = 0;
 			Relays[i].Pointer_Switch->Last_State_Pin = Relays[i].Pointer_Switch->Current_State_Pin; /*store current in previous */
 		}
 		else if((0 == Relays[i].Pointer_Switch->Current_State_Pin) && (1 == Relays[i].Pointer_Switch->Last_State_Pin))
 		{
-			/*falling edge detected  -> switch object off */
-			Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); /*Write Low*/
-			Relays[i].Time_Counter = 0;
+			/*falling edge detected  -> switch object On */
+			Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,1); /*Write High*/
+
 			Relays[i].Pointer_Switch->Last_State_Pin = Relays[i].Pointer_Switch->Current_State_Pin; /*store current in previous */
 		}
 		else

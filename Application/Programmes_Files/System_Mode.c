@@ -44,7 +44,11 @@ void System_Init(void)
 	Push_Button.Button_Mode = BUTTON_NOT_PRESSED;
 	Rte_PortControl_Pin_Init(Push_Button.Pin_ID,PULL_UP);
 
+	MGPIO_voidSetPinDirection(Hardware_PIN16,OUTPUT_SPEED_2MHZ_PP); // Wifi Power Pin
 
+	MGPIO_voidSetPinValue(Hardware_PIN16,0);
+	MGPIO_voidSetPinValue(Hardware_PIN16,1);
+	MGPIO_voidSetPinValue(Hardware_PIN16,0);
 
 
 

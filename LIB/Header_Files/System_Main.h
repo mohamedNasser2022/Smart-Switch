@@ -12,7 +12,7 @@
 #define BOOT_HALT  0x00
 
 /*System Parameters*/
-#define NUMBER_OF_RELAYS_INTERNAL_ON_CHIP               7
+#define NUMBER_OF_RELAYS_INTERNAL_ON_CHIP               4
 #define LENGHT_STATUS_OBJECT_ON_SYSTEM                  8
 
 
