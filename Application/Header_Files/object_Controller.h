@@ -27,8 +27,8 @@ typedef struct{
 	u8 Object_WIFI_ID;
 	u8 Output_PIN_ID;
 	u8 Object_Number_In_Status_Message;
-	u32 Timer_Referance:17;		/* 131,071 count*/
-	u32 Time_Counter:17;  	    /* 131,071 count*/
+	u32 Timer_Referance;
+	u32 Time_Counter;
 	Switch_t* Pointer_Switch;
 
 }Relay_t;
