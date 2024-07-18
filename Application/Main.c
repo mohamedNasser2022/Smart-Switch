@@ -51,13 +51,14 @@ void main()
 	RCC_voidEnableClock(RCC_IOPB);   /*GPIOA Enable*/
 	RCC_voidEnableClock(RCC_IOPC);   /*GPIOA Enable*/
 	RCC_voidEnableClock(RCC_USART1); /*Enable UART1*/
+	MSTK_voidInit();
 
 	RTE_Init();
 
 
 
 	/*Enable systick*/
-	MSTK_voidInit();
+	
 	MSTK_voidSetIntervalPeriodic(1000,Polling_Functions_For_System); // this calling each 1 ms
 
 
