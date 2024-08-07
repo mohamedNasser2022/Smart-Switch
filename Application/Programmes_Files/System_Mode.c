@@ -49,7 +49,7 @@ void System_Init(void)
 	
 	MGPIO_voidSetPinValue(Hardware_PIN16,1);
 	MGPIO_voidSetPinValue(Hardware_PIN16,0);
-	MSTK_voidSetBusyWait(1000000*4);
+	MSTK_voidSetBusyWait(1000000);
 
 
 }
