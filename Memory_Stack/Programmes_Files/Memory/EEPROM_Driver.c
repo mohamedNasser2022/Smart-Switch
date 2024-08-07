@@ -59,11 +59,11 @@ void EEPROM_Driver_Polling(void)
 void EEPROM_Driver_Time(void)
 {
 	EEPROM_Driver_Time_ms++;
-	if(EEPROM_Driver_Time_ms % 5 == 0)
-	{
+	
+	
 		EEPROM_Driver_Write_on_Physical();
 		EEPROM_Erasing_ALL();
-	}
+	
 
 
 
