@@ -76,7 +76,23 @@ void system_Periodic(void)
 	{
 		Runnable_System_Mode_Wifi_Init();	
 	}
-	
+
+	if(0 == system_time_ms % 500)
+	{
+		store_Wifi_data();  // check each 500 ms
+	}
+
+}
+
+static void store_Wifi_data(void)
+{
+	Idt_Message_0x30_t Name;
+	Idt_Message_0x31_t Password;
+	if(Read_Done == Rte_Read_Message_0x31(&Password) && Read_Done == Rte_Read_Message_0x30(&Name))
+	{
+		Rte_Write_FD04(&Name); // Name
+		Rte_Write_FD05(&Password); //Pass
+	}
 
 }
 

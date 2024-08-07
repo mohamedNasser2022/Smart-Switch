@@ -122,7 +122,7 @@ u8 Comuncation_Manger_Send_Data_to_UART_Buffer(void* Pointer_To_Data)
 
 void UART_Manger_Write_Data_To_Comunication_Manger(void)
 { 
-	Comuncation_Manger_Interface Local_Data_Swap;  // shall be Uart_Buffer
+	Array_Of_Queue_3 Local_Data_Swap;  // shall be Uart_Buffer
 	Queue3_Clear(&Local_Data_Swap);
 	Queue3_Push(&Local_Data_Swap,UART_HEADER);
 
@@ -177,7 +177,7 @@ static void Uart_Manger_Move_Data_From_Send_Buffer_Header_to_Send_Buffer(void)
 
 static void Uart_Manger_Move_Data_From_Received_Buffer_to_Received_Header_Buffer(void)
 {
-	Comuncation_Manger_Interface Local_Data_Swap;  // shall be Uart_Buffer
+	Array_Of_Queue_3 Local_Data_Swap;  // shall be Uart_Buffer
 	Queue3_Clear(&Local_Data_Swap);
 	u8 Local_Data_Byte_1 = 0;
 	u8 Local_Data_Byte_2 = 0;

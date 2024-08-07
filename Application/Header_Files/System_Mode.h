@@ -29,6 +29,7 @@ static void Runnable_System_Mode_Wifi_Init(void);
 static void Runnable_System_Read_Nvm_Data(void);
 static void System_Fetch_Shared_Variables(void);
 static void Push_Button_Task(void);
+static void store_Wifi_data(void);
 
 static u8 System_Mode_Write_0x01(u8 copy_u8_Data1,u8 copy_u8_Data2,u8 copy_u8_Data3);
 static u8 System_Mode_Write_0x02(u8 copy_u8_Data1);

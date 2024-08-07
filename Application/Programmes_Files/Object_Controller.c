@@ -72,20 +72,12 @@ void Object_Periodic(void)
 
 		if(Object_SW_Time_In_ms % 10 == 0)  //50
 		{
-
 			Runnable_Object_Update_Relays_And_Switch_Status_10ms();
-
-			Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms();
 		}
 		if(Object_SW_Time_In_ms % 5 == 0)
 		{
 			Runnable_Object_Message_0x10_5ms();
 		}
-		if(Object_SW_Time_In_ms % 50 == 0)
-		{
-			Runnable_Object_Auto_Off_50ms();
-		}
-
 
 		break;
 	case Nvm_Read_Mode :
@@ -99,6 +91,11 @@ void Object_Periodic(void)
 	if(Object_SW_Time_In_ms % 10 == 0)
 	{
 		Runnable_Object_Init_Objects_In_WIFI_10ms();
+		Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms();
+	}
+	if(Object_SW_Time_In_ms % 50 == 0)
+	{
+		Runnable_Object_Auto_Off_50ms();
 	}
 	
 }
@@ -240,16 +237,18 @@ static void Runnable_Load_Nvm_Data(void)
 	*/
 
 
+	Idt_Rec003_FD02 Local_Relay_Struct;
+	Idt_Rec004_FD03 Local_Switch_Struct;
 	u8 Local_Relay_Status;
 	u8 Local_Switch_Status;
 	u8 Local_Current_Switch_Status;
 
-	if(Read_Done == Rte_Read_FD02(&Local_Relays_Status) && Read_Done == Rte_Read_FD03(&Local_Switches_Status))
+	if(Read_Done == Rte_Read_FD02(&Local_Relay_Struct) && Read_Done == Rte_Read_FD03(&Local_Switch_Struct))
 	{
 		for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
 		{
-			Struct_Status_Get_Valus(&Local_Relays_Status,Relays[i].Object_Number_In_Status_Message,&Local_Relay_Status);
-			Struct_Status_Get_Valus(&Local_Switches_Status,Relays[i].Object_Number_In_Status_Message,&Local_Switch_Status);
+			Struct_Status_Get_Valus(&Local_Relay_Struct,Relays[i].Object_Number_In_Status_Message,&Local_Relay_Status);
+			Struct_Status_Get_Valus(&Local_Switch_Struct,Relays[i].Object_Number_In_Status_Message,&Local_Switch_Status);
 
 			Relays[i].Pointer_Switch->Last_State_Pin = Local_Switch_Status; /* Restor Last Status*/
 
@@ -257,8 +256,8 @@ static void Runnable_Load_Nvm_Data(void)
 
 			if(Local_Switch_Status != Local_Current_Switch_Status && 1 == Local_Relay_Status)
 			{
-				// Off if there isn't equal
-				Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0); 
+				
+				Rte_PortControl_Pin_Level(Relays[i].Output_PIN_ID,0);  // Off if there isn't equal
 
 				Relays[i].Pointer_Switch->Current_State_Pin = Local_Current_Switch_Status;
 				Relays[i].Pointer_Switch->Last_State_Pin = Local_Current_Switch_Status;

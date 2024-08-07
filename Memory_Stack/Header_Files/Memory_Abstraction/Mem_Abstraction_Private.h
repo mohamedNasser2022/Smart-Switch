@@ -23,10 +23,10 @@ static u8 MemIf_Nvm_Read_All(void);
 static void MemIf_Loading_Blocks(void *Pointer);
 
 /*-------------------Loading default value for each Record -----------------------------*/
-static void MemIf_Loadong_Default_Valus_Rec001(void);
-static void MemIf_Loadong_Default_Valus_Rec002(void);
-static void MemIf_Loadong_Default_Valus_Rec003(void);
-static void MemIf_Loadong_Default_Valus_Rec004(void);
+static void MemIf_Loading_Default_Valus_Rec001(void);
+static void MemIf_Loading_Default_Valus_Rec002(void);
+static void MemIf_Loading_Default_Valus_Rec003(void);
+static void MemIf_Loading_Default_Valus_Rec004(void);
 /*-------------------Loading default value for each Record -----------------------------*/
 
 /*------------------Writing Function for each Record -------------------------*/

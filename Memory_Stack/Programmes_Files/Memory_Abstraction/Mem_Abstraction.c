@@ -178,18 +178,16 @@ void MemIf_Time(void)
 {
 	MemIf_Time_ms++;
 
-	if(Control_test == 1)
-	{
-		MemIF_Module_Modes_Switching();
-	}
-	else if(Control_test == 2)
-	{
-		if(On_Progress == EEPROM_Driver_Erasing_All())
-		{
-			MemIf_Controller.Module_Mode = MemIf_Erasing;
-		}
 
-	}
+	MemIF_Module_Modes_Switching();
+
+
+	/*if(On_Progress == EEPROM_Driver_Erasing_All())
+	{
+		MemIf_Controller.Module_Mode = MemIf_Erasing;
+	}*/
+
+
 
 }
 
@@ -266,9 +264,9 @@ static void MemIF_Module_Modes_Switching(void)
 	case Virgin:
 
 		MemIf_Write_Nvm_Manger_Data();
-		MemIf_Loadong_Default_Valus_Rec001();
-		MemIf_Loadong_Default_Valus_Rec002();
-		MemIf_Loadong_Default_Valus_Rec003();
+		MemIf_Loading_Default_Valus_Rec001();
+		MemIf_Loading_Default_Valus_Rec002();
+		MemIf_Loading_Default_Valus_Rec003();
 
 
 
@@ -739,7 +737,7 @@ static u8 MemIf_Nvm_Read_All(void)
 
 
 /*-------------------Loading default value for each Record -----------------------------*/
-static void MemIf_Loadong_Default_Valus_Rec001(void)
+static void MemIf_Loading_Default_Valus_Rec001(void)
 {
 	Nvm_Descriptor_Rec001.Rec001_copy_FD00.Hardware_Version = 0x06;
 	Nvm_Descriptor_Rec001.Rec001_copy_FD00.Host_Software_Version = 0x09;
@@ -753,7 +751,7 @@ static void MemIf_Loadong_Default_Valus_Rec001(void)
 	Nvm_Descriptor_Rec001.Write_Status = Writing_Needed;
 }
 
-static void MemIf_Loadong_Default_Valus_Rec002(void)
+static void MemIf_Loading_Default_Valus_Rec002(void)
 {
 	Nvm_Descriptor_Rec002.Rec002_copy_FD01.Number_Relays_On_Syetem = 0x03;
 	Nvm_Descriptor_Rec002.Rec002_copy_FD01.Number_Switches_On_Syetem = 0x03;
@@ -765,7 +763,7 @@ static void MemIf_Loadong_Default_Valus_Rec002(void)
 	Nvm_Descriptor_Rec002.Write_Status = Writing_Needed;
 }
 
-static void MemIf_Loadong_Default_Valus_Rec003(void)
+static void MemIf_Loading_Default_Valus_Rec003(void)
 {
 	Nvm_Descriptor_Rec003.Rec003_copy_FD02.Relay_status[0] = 0;
 	Nvm_Descriptor_Rec003.Rec003_copy_FD02.Relay_status[1] = 0;
@@ -782,7 +780,7 @@ static void MemIf_Loadong_Default_Valus_Rec003(void)
 	Nvm_Descriptor_Rec003.Write_Status = Writing_Needed;
 }
 
-static void MemIf_Loadong_Default_Valus_Rec004(void)
+static void MemIf_Loading_Default_Valus_Rec004(void)
 {
 	Nvm_Descriptor_Rec004.Rec004_copy_FD03.Switch_status[0] = 0;
 	Nvm_Descriptor_Rec004.Rec004_copy_FD03.Switch_status[1] = 0;
