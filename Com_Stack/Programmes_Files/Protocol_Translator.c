@@ -50,15 +50,15 @@ void Protocol_Translator_Time(void)
 
 	if(Protocol_System_Time_ms % 500 == 0)
 	{
-		Runnable_Read_Messages_Status_10ms();
+		Runnable_Read_Messages_Status_500ms();
 	}
 
 	Runnable_Read_Messages_1ms();
 }
 
-static void Runnable_Read_Messages_Status_10ms(void)
+static void Runnable_Read_Messages_Status_500ms(void)
 {
-	Rte_Read_System_Mode(&System_Mode);
+	Rte_Read_System_Mode(&System_Mode);  /* Reading system mode */
 
 	if(WIFI_MODE == System_Mode)
 	{

@@ -27,7 +27,7 @@ typedef struct{
 	u8 Object_WIFI_ID;
 	u8 Output_PIN_ID;
 	u8 Object_Number_In_Status_Message;
-	u32 Timer_Referance;
+	u8 Timer_Referance_Mins;
 	u32 Time_Counter;
 	Switch_t* Pointer_Switch;
 
@@ -100,5 +100,6 @@ static void Runnable_Object_Read_Inputs_Pins_And_Update_Output_Each_10ms(void);
 static void Runnable_Object_Update_Relays_And_Switch_Status_10ms(void);
 static void Runnable_Object_Update_Relays_Status_10ms(void);
 static void Runnable_Load_Nvm_Data(void);
+static void Runnable_Object_Time_Data_Update(void);
 
 #endif

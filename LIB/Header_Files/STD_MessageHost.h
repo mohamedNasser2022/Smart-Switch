@@ -12,15 +12,12 @@ typedef struct
 }Idt_Message_0x01_t;
 
 #define MESSAGE_0x11        0x11
-#define MESSAGE_LENGTH_0x11 6
+#define MESSAGE_LENGTH_0x11 3
 typedef struct
 {
 	u8 Object_ID;
 	u8 Command;
-	u8 Time_Value_Byte_1;
-	u8 Time_Value_Byte_2;
-	u8 Time_Value_Byte_3;
-	u8 Time_Value_Byte_4;
+	u8 Time_In_Mins;
 }Idt_Message_0x11_t;
 
 #define MESSAGE_0x13        0x13
@@ -70,15 +67,12 @@ typedef struct
 }Idt_Message_0x03_t;
 
 #define MESSAGE_0x10        0x10
-#define MESSAGE_LENGTH_0x10 6
+#define MESSAGE_LENGTH_0x10 3
 typedef struct
 {
 	u8 Object_ID;
 	u8 Command;
-	u8 Time_Value_Byte_1;
-	u8 Time_Value_Byte_2;
-	u8 Time_Value_Byte_3;
-	u8 Time_Value_Byte_4;
+	u8 Time_In_Mins;
 }Idt_Message_0x10_t;
 
 #define MESSAGE_0x30        0x30
@@ -94,6 +88,14 @@ typedef struct
 {
 	u8 Data[40];
 }Idt_Message_0x31_t;
+
+#define MESSAGE_0x15        0x15
+#define MESSAGE_LENGTH_0x15 2
+typedef struct
+{
+	u8 Object_ID;
+	u8 Object_Data;
+}Idt_Message_0x15_t;
 
 
 #endif

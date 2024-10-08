@@ -20,7 +20,7 @@
 
 
 /*------------------------------------------------------------------------------*/
-static void Runnable_Read_Messages_Status_10ms(void);
+static void Runnable_Read_Messages_Status_500ms(void);
 
 
 static void Protocol_Translator_Fetch_Data_From_Comunication_Manger_Throw_Rte(void);

@@ -2,6 +2,7 @@
 #include"Com_ServiceHost.h"
 #include"STD_MessageHost.h"
 #include"RTE.h"
+
 void Runnable_Read_Messages_1ms(void) /*This is generated Function*/
 {
 	Message_Read_0x01();
@@ -10,6 +11,7 @@ void Runnable_Read_Messages_1ms(void) /*This is generated Function*/
 	Message_Read_0x14();
 	Message_Read_0x20();
 	Message_Read_0x21();
+	Message_Read_0x15();
 }
 
 void Gate_Way(u8* Message_Data) /*This is generated Function*/
@@ -81,6 +83,15 @@ static void Message_Read_0x21(void)
 	if(Read_Done == Rte_Read_Message_0x21(&Local_Message))
 	{
 		Adding_Message_Header_Push_Message_Data_To_Comunication_Manger(&Local_Message,MESSAGE_0x21,MESSAGE_LENGTH_0x21);
+	}
+}
+
+static void Message_Read_0x15(void)
+{
+	Idt_Message_0x15_t Local_Message;
+	if(Read_Done == Rte_Read_Message_0x15(&Local_Message))
+	{
+		Adding_Message_Header_Push_Message_Data_To_Comunication_Manger(&Local_Message,MESSAGE_0x15,MESSAGE_LENGTH_0x15);
 	}
 }
 

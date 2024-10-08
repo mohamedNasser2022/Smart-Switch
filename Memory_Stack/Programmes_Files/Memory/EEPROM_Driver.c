@@ -61,8 +61,8 @@ void EEPROM_Driver_Time(void)
 	EEPROM_Driver_Time_ms++;
 	
 	
-		EEPROM_Driver_Write_on_Physical();
-		EEPROM_Erasing_ALL();
+	EEPROM_Driver_Write_on_Physical();
+	EEPROM_Erasing_ALL();
 	
 
 

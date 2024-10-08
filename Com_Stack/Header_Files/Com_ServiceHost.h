@@ -10,5 +10,6 @@ static void Message_Read_0x13(void);
 static void Message_Read_0x14(void);
 static void Message_Read_0x20(void);
 static void Message_Read_0x21(void);
+static void Message_Read_0x15(void);
 
 #endif

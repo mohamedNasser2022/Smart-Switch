@@ -35,5 +35,8 @@ u8 Rte_Read_Message_0x30 (Idt_Message_0x30_t *Pointer_Data);
 u8 Rte_Write_Message_0x31(Idt_Message_0x31_t *Pointer_Data);
 u8 Rte_Read_Message_0x31 (Idt_Message_0x31_t *Pointer_Data);
 
+u8 Rte_Write_Message_0x15(Idt_Message_0x15_t *Pointer_Data);
+u8 Rte_Read_Message_0x15 (Idt_Message_0x15_t *Pointer_Data);
+
 
 #endif

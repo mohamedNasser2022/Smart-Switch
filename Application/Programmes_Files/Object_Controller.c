@@ -78,12 +78,16 @@ void Object_Periodic(void)
 		{
 			Runnable_Object_Message_0x10_5ms();
 		}
+		if(Object_SW_Time_In_ms % 10 == 0)
+		{
+			Runnable_Object_Time_Data_Update();
+		}
 
 		break;
 	case Nvm_Read_Mode :
 
 		Runnable_Load_Nvm_Data();
-		break;;
+		break;
 	default:
 		break;
 	}
@@ -112,7 +116,7 @@ u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u
 
 		Relays[Object_Data_Manger.Relay_Counter].Output_PIN_ID = Relay_Pin;
 
-		Relays[Object_Data_Manger.Relay_Counter].Timer_Referance = Time_to_Be_off_In_Seconds;
+		Relays[Object_Data_Manger.Relay_Counter].Timer_Referance_Mins = Time_to_Be_off_In_Seconds;
 
 		Relays[Object_Data_Manger.Relay_Counter].Pointer_Switch = &Switches[Object_Data_Manger.Switch_Counter];
 
@@ -134,6 +138,45 @@ u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u
 	}
 
 	return Local_Return;
+
+}
+
+/**
+ * WI-2006
+ * Description : Runnable_Object_Time_Data_Update 
+ * this function shall called each 10 ms and update timeoff for each object in system to report it to WIFI moudle 
+ * function call : periodic each 10 ms
+*/
+
+static void Runnable_Object_Time_Data_Update(void)
+{	
+	static u8 counter = 0;
+
+	Idt_Message_0x15_t Local_Message;
+
+	Rte_Read_System_Mode(&System_Mode);  /* Reading system mode */
+
+	if(WIFI_MODE == System_Mode)
+	{
+		if(Read_Faild == Rte_Read_Message_0x15(&Local_Message))
+		{
+			Local_Message.Object_ID   = Relays[counter].Object_WIFI_ID;
+			Local_Message.Object_Data = Relays[counter].Timer_Referance_Mins;
+			Rte_Write_Message_0x15(&Local_Message);
+			counter ++;
+
+			if(counter > NUMBER_OF_RELAYS_INTERNAL_ON_CHIP)
+			{
+				counter = 0;
+			}
+			else
+			{
+
+			}
+
+		}
+
+	}
 
 }
 
@@ -205,13 +248,13 @@ static void Runnable_Object_Auto_Off_50ms(void)
 
 	for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
 	{
-		if( 0 != Relays[i].Timer_Referance )
+		if( 0 != Relays[i].Timer_Referance_Mins )
 		{
 			Rte_PortControl_Pin_Read(Relays[i].Output_PIN_ID,&Local_Relay_State);
 
 			if(1 == Local_Relay_State)
 			{
-				u32 Local_Time_Compare_in_Second = Relays[i].Timer_Referance * 60000; //Time Referance in mins covert to msecond
+				u32 Local_Time_Compare_in_Second = Relays[i].Timer_Referance_Mins * 60000; //Time Referance in mins covert to msecond
 				Relays[i].Time_Counter += 50;
 
 				if(Relays[i].Time_Counter >= Local_Time_Compare_in_Second)
@@ -279,11 +322,15 @@ static void Runnable_Load_Nvm_Data(void)
 
 }
 
-
+/*
+ *	Runnable_Object_Message_0x10_5ms(void)
+ *	WI #022 
+*/
 
 static void Runnable_Object_Message_0x10_5ms(void)
 {
 	/*Local Variables*/
+	
 
 	volatile u8 Local_Pin_State = 0;
 	volatile Relay_t* Local_Relay;
@@ -317,20 +364,17 @@ static void Runnable_Object_Message_0x10_5ms(void)
 
 			break;
 		case Request_Time_Ref_Read:
-
+			// WI #013 
 			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Object_ID,&Local_Relay))
 			{
 				Idt_Message_0x11_t Local_Message_0x11;
 
-				volatile u32 Local_Time_Ref_Data = Local_Relay->Timer_Referance; 
+				volatile u8 Local_Time_Ref_Data = Local_Relay->Timer_Referance_Mins; 
 
 				Local_Message_0x11.Object_ID = Local_Message_0x10.Object_ID; /*Object ID*/
 				Local_Message_0x11.Command = Respond_Message;
-				Local_Message_0x11.Time_Value_Byte_1 = ((u8) Local_Time_Ref_Data) ;
-				Local_Message_0x11.Time_Value_Byte_2 = ((u8) (Local_Time_Ref_Data >>8)) ;
-				Local_Message_0x11.Time_Value_Byte_3 = ((u8) (Local_Time_Ref_Data >>16)) ;
-				Local_Message_0x11.Time_Value_Byte_4 = ((u8) (Local_Time_Ref_Data >>24));
-
+				Local_Message_0x11.Time_In_Mins = ((u8) Local_Time_Ref_Data) ;
+				
 				Rte_Write_Message_0x11(&Local_Message_0x11);
 
 
@@ -340,17 +384,9 @@ static void Runnable_Object_Message_0x10_5ms(void)
 		case Time_Change:
 			if(Get_Search_About_WIFI_ID(Local_Message_0x10.Object_ID,&Local_Relay))
 			{
-				
 
-				
-				 Local_Relay->Timer_Referance = Local_Message_0x10.Time_Value_Byte_1 |
-				 								Local_Message_0x10.Time_Value_Byte_2 << 8|
-												Local_Message_0x10.Time_Value_Byte_3 << 16 |
-												Local_Message_0x10.Time_Value_Byte_4 << 24;
-				
-
-				
-
+				 Local_Relay->Timer_Referance_Mins = Local_Message_0x10.Time_In_Mins ;
+				 								
 
 			}
 			break;
