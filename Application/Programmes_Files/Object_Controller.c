@@ -165,7 +165,7 @@ static void Runnable_Object_Time_Data_Update(void)
 			Rte_Write_Message_0x15(&Local_Message);
 			counter ++;
 
-			if(counter > NUMBER_OF_RELAYS_INTERNAL_ON_CHIP)
+			if(counter == NUMBER_OF_RELAYS_INTERNAL_ON_CHIP)
 			{
 				counter = 0;
 			}
