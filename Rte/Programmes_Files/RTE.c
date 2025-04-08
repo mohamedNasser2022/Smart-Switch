@@ -202,145 +202,146 @@ u8 Rte_Write_WIFI_Sequenc_Variable(u8* Pointer_WIFI_Sequenc_Variable)
 
 STD_Returns Rte_Read_Hardware_Version(u8 *Pointer_Data)
 {
-	*Pointer_Data = Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version;
-	return E_OK;
+	/*Pointer_Data = Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version;
+	return E_OK;*/
 }
 
 STD_Returns Rte_Write_Hardware_Version(u8 copy_Data)
 {
+	/*
 	Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = copy_Data;
 
-	return E_OK;
+	return E_OK;*/
 }
 
 STD_Returns Rte_Write_FD00(Idt_Rec001_FD00 *Pointer_data)
 {
-	Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = Pointer_data->Hardware_Version;
+	/*Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = Pointer_data->Hardware_Version;
 	Rte_Data_Rec001_FD00.Rec001_FD00.Host_Software_Version = Pointer_data->Host_Software_Version;
 	Rte_Data_Rec001_FD00.Rec001_FD00.WIFI_Software_Version = Pointer_data->WIFI_Software_Version;
 
-	return E_OK;
+	return E_OK;*/
 }
 
 STD_Returns Rte_Nvm_Write_FD00(Idt_Rec001_FD00 *Pointer_data)
 {
-	Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = Pointer_data->Hardware_Version;
+	/*Rte_Data_Rec001_FD00.Rec001_FD00.Hardware_Version = Pointer_data->Hardware_Version;
 	Rte_Data_Rec001_FD00.Rec001_FD00.Host_Software_Version = Pointer_data->Host_Software_Version;
 	Rte_Data_Rec001_FD00.Rec001_FD00.WIFI_Software_Version = Pointer_data->WIFI_Software_Version;
 
 	Rte_Data_Rec001_FD00.Nvm_Data_Status = Rte_Load_Done;
 
-	return E_OK;
+	return E_OK;*/
 }
 
 STD_Returns Rte_Write_FD01(Idt_Rec002_FD01 *Pointer_data)
 { 
-	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem = Pointer_data->Number_Relays_On_Syetem;
+	/*Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem = Pointer_data->Number_Relays_On_Syetem;
 	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Sensors_On_Syetem = Pointer_data->Number_Sensors_On_Syetem;
 	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Switches_On_Syetem = Pointer_data->Number_Switches_On_Syetem;
 
-	return E_OK;
+	return E_OK;*/
 }
 
 STD_Returns Rte_Nvm_Write_FD01(Idt_Rec002_FD01 *Pointer_data)
 { 
-	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem = Pointer_data->Number_Relays_On_Syetem;
+	/*Rte_Data_Rec002_FD01.Rec002_FD01.Number_Relays_On_Syetem = Pointer_data->Number_Relays_On_Syetem;
 	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Sensors_On_Syetem = Pointer_data->Number_Sensors_On_Syetem;
 	Rte_Data_Rec002_FD01.Rec002_FD01.Number_Switches_On_Syetem = Pointer_data->Number_Switches_On_Syetem;
 
 	Rte_Data_Rec002_FD01.Nvm_Data_Status = Rte_Load_Done;
 
-	return E_OK;
+	return E_OK;*/
 }
 
 STD_Returns Rte_Write_FD02(Idt_Rec003_FD02 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
+	/*u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
 
 	for(u8 i = 0 ; i < Data_Lenght ; i++)
 	{
 		Rte_Data_Rec003_FD02.Rec003_FD02.Relay_status[i] = Pointer_data->Relay_status[i];
 	}
 
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Nvm_Write_FD02(Idt_Rec003_FD02 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
+	/*u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
 
 	for(u8 i = 0 ; i < Data_Lenght ; i++)
 	{
 		Rte_Data_Rec003_FD02.Rec003_FD02.Relay_status[i] = Pointer_data->Relay_status[i];
 	}
 	Rte_Data_Rec003_FD02.Nvm_Data_Status = Rte_Load_Done;
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Write_FD03(Idt_Rec004_FD03 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
+	/*u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
 
 	for(u8 i = 0 ; i < Data_Lenght ; i++)
 	{
 		Rte_Data_Rec004_FD03.Rec004_FD03.Switch_status[i] = Pointer_data->Switch_status[i];
 	}
 
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Nvm_Write_FD03(Idt_Rec004_FD03 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
+	/*u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
 
 	for(u8 i = 0 ; i < Data_Lenght ; i++)
 	{
 		Rte_Data_Rec004_FD03.Rec004_FD03.Switch_status[i] = Pointer_data->Switch_status[i];
 	}
 	Rte_Data_Rec004_FD03.Nvm_Data_Status = Rte_Load_Done;
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Write_FD04(Idt_Rec005 *Pointer_data)
 {
-	MemIf_Immediate_Write_Rec005(Pointer_data);
-	return Write_Done;
+	/*MemIf_Immediate_Write_Rec005(Pointer_data);
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Nvm_Write_FD04(Idt_Rec005 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
+	/*u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
 
 	for(u8 i = 0 ; i < Data_Lenght ; i++)
 	{
 		Rte_Data_Rec005.WiFi_Name.Data[i] = Pointer_data->Data[i];
 	}
 	Rte_Data_Rec005.Nvm_Data_Status = Rte_Load_Done;
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Write_FD05(Idt_Rec006 *Pointer_data)
 {
-	MemIf_Immediate_Write_Rec006(Pointer_data);
+	/*MemIf_Immediate_Write_Rec006(Pointer_data);
 
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Nvm_Write_FD05(Idt_Rec006 *Pointer_data)
 {
-	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
+	/*u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
 
 	for(u8 i = 0 ; i < Data_Lenght ; i++)
 	{
 		Rte_Data_Rec006.WiFi_Password.Data[i] = Pointer_data->Data[i];
 	}
 	Rte_Data_Rec006.Nvm_Data_Status = Rte_Load_Done;
-	return Write_Done;
+	return Write_Done;*/
 }
 
 STD_Returns Rte_Read_FD00(Idt_Rec001_FD00 *Pointer_data)
 {
-	u8 Local_Return = Read_Done;
+	/*u8 Local_Return = Read_Done;
 	
 	if(Rte_Load_Done == Rte_Data_Rec001_FD00.Nvm_Data_Status)
 	{
@@ -352,12 +353,12 @@ STD_Returns Rte_Read_FD00(Idt_Rec001_FD00 *Pointer_data)
 	{
 		Local_Return = Read_Faild ;
 	}
-	return Local_Return;
+	return Local_Return;*/
 }
 
 STD_Returns Rte_Read_FD01(Idt_Rec002_FD01 *Pointer_data)
 {
-	u8 Local_Return = Read_Done;
+	/*u8 Local_Return = Read_Done;
 
 	if(Rte_Load_Done == Rte_Data_Rec002_FD01.Nvm_Data_Status)
 	{
@@ -370,12 +371,12 @@ STD_Returns Rte_Read_FD01(Idt_Rec002_FD01 *Pointer_data)
 		Local_Return = Read_Faild ;
 	}
 
-	return Local_Return;
+	return Local_Return;*/
 }
 
 STD_Returns Rte_Read_FD02(Idt_Rec003_FD02 *Pointer_data)
 {
-	u8 Local_Return = Read_Done;
+	/*u8 Local_Return = Read_Done;
 
 	u8 Data_Lenght = sizeof(Rte_Data_Rec003_FD02.Rec003_FD02)/sizeof(u8) ;
 
@@ -393,12 +394,12 @@ STD_Returns Rte_Read_FD02(Idt_Rec003_FD02 *Pointer_data)
 	}
 
 
-	return Local_Return;
+	return Local_Return;*/
 }
 
 STD_Returns Rte_Read_FD03(Idt_Rec004_FD03 *Pointer_data)
 {
-	u8 Local_Return = Read_Done;
+	/*u8 Local_Return = Read_Done;
 
 	u8 Data_Lenght = sizeof(Rte_Data_Rec004_FD03.Rec004_FD03)/sizeof(u8) ;
 
@@ -416,12 +417,12 @@ STD_Returns Rte_Read_FD03(Idt_Rec004_FD03 *Pointer_data)
 	}
 
 
-	return Local_Return;
+	return Local_Return;*/
 }
 
 STD_Returns Rte_Read_FD04(Idt_Rec005 *Pointer_data)
 {
-	u8 Local_Return = Read_Done;
+	/*u8 Local_Return = Read_Done;
 
 	u8 Data_Lenght = sizeof(Idt_Rec005)/sizeof(u8) ;
 
@@ -439,12 +440,12 @@ STD_Returns Rte_Read_FD04(Idt_Rec005 *Pointer_data)
 	}
 
 
-	return Local_Return;
+	return Local_Return;*/
 }
 
 STD_Returns Rte_Read_FD05(Idt_Rec006 *Pointer_data)
 {
-	u8 Local_Return = Read_Done;
+	/*u8 Local_Return = Read_Done;
 
 	u8 Data_Lenght = sizeof(Idt_Rec006)/sizeof(u8) ;
 
@@ -462,5 +463,6 @@ STD_Returns Rte_Read_FD05(Idt_Rec006 *Pointer_data)
 	}
 
 
-	return Local_Return;
+	return Local_Return;*/
 }
+

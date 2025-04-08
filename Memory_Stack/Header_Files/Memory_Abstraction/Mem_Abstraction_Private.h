@@ -4,9 +4,72 @@
  *  Created on: Jul 7, 2023
  *      Author: Mohamed Nasser
  */
-
+#include "Memif_Nvm_REC_Struct.h"
 #ifndef MEMORY_STACK_HEADER_FILES_MEMORY_ABSTRACTION_MEM_ABSTRACTION_PRIVATE_H_
 #define MEMORY_STACK_HEADER_FILES_MEMORY_ABSTRACTION_MEM_ABSTRACTION_PRIVATE_H_
+
+
+enum Modes{
+
+	MemIf_Undefined,
+	MemIf_Initialization,
+	MemIf_OnGoing,
+	MemIf_Done,
+	MemIf_Reading,
+	MemIf_Writing,
+	MemIf_Stand_by,
+	MemIf_Erasing,
+	MemIf_Normal,
+	MemIf_Busy,
+	MemIf_Ok,
+
+};
+
+enum Reading_Writing_Enum{
+
+	Writing_Reading_Undefined,
+	Writing_Needed,
+	Writing_On_Going,
+	Writing_Done,
+	Writing_Failed,
+	Read_Faild,
+	Read_On_Going,
+	Read_Done,
+
+};
+
+
+struct 
+{
+	enum Modes Module_Mode;
+	u8 current_Mode_Status;
+
+
+}MemIf_Controller;
+
+
+static struct {
+
+	Idt_Rec000_t Rec000_copy_Nvm_Manger;
+	u8 Block_Type:2;
+	u16 writing_Counter;
+	u16 Block_Check_Sum;
+	enum Reading_Writing_Enum Write_Status:4;
+	enum Reading_Writing_Enum Read_Status:4;
+
+}Nvm_Descriptor_Block_Rec000_Nvm_Manger_Struct;
+
+static struct {
+
+	Idt_Rec001_t Rec001_copy_FD00;
+	u8 Block_Type:2;
+	u16 writing_Counter;
+	u16 Block_Check_Sum;
+	enum Reading_Writing_Enum Write_Status:4;
+	enum Reading_Writing_Enum Read_Status:4;
+
+}Nvm_Descriptor_Block_Rec001_FD00_Struct;
+
 
 
 static void MemIf_Loading_Nvm_Manger_Data(void *Pointer);

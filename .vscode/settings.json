@@ -6,6 +6,17 @@
         "dio_expander_private.h": "c",
         "input_output_interface.h": "c",
         "dio_config.h": "c",
-        "rte_com_servicehost.h": "c"
+        "rte_com_servicehost.h": "c",
+        "eeprom_driver_interface.h": "c",
+        "eeprom_driver_private.h": "c",
+        "bit_math.h": "c",
+        "std_types.h": "c",
+        "mem_abstraction_config.h": "c",
+        "memif_nvm_interface.h": "c",
+        "system_main.h": "c",
+        "mem_abstraction_private.h": "c",
+        "memif_nvm_rec_struct.h": "c",
+        "mem_abstraction_interface.h": "c",
+        "rte_nvm_std.h": "c"
     }
 }
