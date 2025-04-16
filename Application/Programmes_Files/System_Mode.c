@@ -9,7 +9,7 @@
 #include"STD_TYPES.h"
 #include"Data_Structure.h"
 #include"RTE.h"
-#include"Rte_Nvm_STD.h"
+
 
 #include"LIB_ERROR.h"
 
@@ -18,8 +18,8 @@
 #include"RTE_Com_ServiceHost.h"
 static volatile u32 system_time_ms;
 
-Idt_Rec005 SSID;
-Idt_Rec006 PASS;
+u8 SSID[20];
+u8 PASS[40];
 
 static struct{
 	volatile u8 System_Mode;
@@ -276,7 +276,7 @@ static void Runnable_System_Read_Nvm_Data(void)
 {
 	if(0 == System_Mode_Controller.Nvm_State)
 	{
-		if(Read_Done == Rte_Read_FD04(&SSID) && Read_Done ==  Rte_Read_FD05(&PASS))
+		if(E_OK == Rte_Read_FD04(&SSID) && E_OK ==  Rte_Read_FD05(&PASS))
 		{
 			System_Mode_Controller.Nvm_State = 1;
 		}

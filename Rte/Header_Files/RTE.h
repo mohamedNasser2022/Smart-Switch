@@ -7,6 +7,7 @@
 
 #include"Lib.h"
 #include"Queue_Interface.h"
+#include"RTE_Memif_Config_Interface.h"
 
 #ifndef RTE_H_
 #define RTE_H_
@@ -16,9 +17,7 @@
 #define COMUNICATION_MANGER_AS_SOURCE 10
 
 
-typedef u8 STD_Returns ;
-#define E_OK   1
-#define NOT_OK 0
+
 
 
 

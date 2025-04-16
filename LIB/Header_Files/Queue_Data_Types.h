@@ -74,7 +74,7 @@ typedef struct
 	u8	Front;
 	u8	Rear;
 	u8	Size;
-	u8	Queue_Elements[18];
+	u8	Queue_Elements[50];
 }Array_Of_Queue_5;
 typedef struct
 {

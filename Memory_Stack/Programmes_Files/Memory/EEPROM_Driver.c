@@ -113,13 +113,13 @@ u8 EEPROM_Driver_Write(u16 WordAddress,EEROM_Queue *Pointer_To_Queue)
 	Queue3_Push(&Local_Queue_Data,(u8)(WordAddress >> 8));
 
 
-	while(Queue3_Size(Pointer_To_Queue))
+	while(Queue5_Size(Pointer_To_Queue))
 	{
 		for(u8 i = 0 ;i < Local_Max_Size_Can_Stored_In_Current_Page ; i++)
 		{
-			if(Queue3_Pop(Pointer_To_Queue,&Local_Data))
+			if(Queue5_Pop(Pointer_To_Queue,&Local_Data))
 			{
-				Queue3_Push(&Local_Queue_Data,Local_Data);
+				Queue5_Push(&Local_Queue_Data,Local_Data);
 			}
 			else
 			{
@@ -130,11 +130,11 @@ u8 EEPROM_Driver_Write(u16 WordAddress,EEROM_Queue *Pointer_To_Queue)
 		if(Nested_Queue5_Push(&Queue_Of_Data,&Local_Queue_Data))
 		{
 			Local_Return = OK_EEPROM;
-			Queue3_Create(&Local_Queue_Data);
+			Queue5_Create(&Local_Queue_Data);
 			Local_Page ++;
 			WordAddress = Local_Page * EEPROM_PAGE_SIZE;
-			Queue3_Push(&Local_Queue_Data,WordAddress);
-			Queue3_Push(&Local_Queue_Data,(u8)(WordAddress >> 8));
+			Queue5_Push(&Local_Queue_Data,WordAddress);
+			Queue5_Push(&Local_Queue_Data,(u8)(WordAddress >> 8));
 		}
 		else
 		{
@@ -351,7 +351,7 @@ static void Notification_Handler_I2C(void* Pointer)
 			Local_Mode_Status = OK_EEPROM;
 			Local_Address_request_status_Data[0] = EEPROM_Driver_System_Mode.EEPROM_Current_Word_Address;
 			Local_Address_request_status_Data[1] = OK_EEPROM;
-			EEPROM_Call_Back_Writing(&Local_Mode,&Local_Mode_Status,Local_Address_request_status_Data);
+			//EEPROM_Call_Back_Writing(&Local_Mode,&Local_Mode_Status,Local_Address_request_status_Data);
 
 		}
 		else if(I2C_Request_Faild == (*((u8*)Pointer)))
@@ -359,7 +359,7 @@ static void Notification_Handler_I2C(void* Pointer)
 			Local_Mode_Status = Faild_EEPROM;
 			Local_Address_request_status_Data[0] = EEPROM_Driver_System_Mode.EEPROM_Current_Word_Address;
 			Local_Address_request_status_Data[1] = Faild_EEPROM;
-			EEPROM_Call_Back_Writing(&Local_Mode,&Local_Mode_Status,Local_Address_request_status_Data);
+			//EEPROM_Call_Back_Writing(&Local_Mode,&Local_Mode_Status,Local_Address_request_status_Data);
 		}
 		else
 		{

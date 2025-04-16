@@ -14,7 +14,7 @@
 #include"Data_Structure.h"
 #include"RTE.h"
 #include"System_Main.h"
-#include"Rte_Nvm_STD.h"
+
 
 #include"STD_MessageHost.h"
 
@@ -63,9 +63,9 @@ static void Runnable_Read_Messages_Status_500ms(void)
 	if(WIFI_MODE == System_Mode)
 	{
 		
-		Idt_Rec003_FD02 Local_Data ; 
+		u8 Local_Data[8] ;
 
-		if(Read_Done == Rte_Read_FD02(&Local_Data))
+		if(E_OK == Rte_Read_FD02(&Local_Data))
 		{
 			Adding_Message_Header_Push_Message_Data_To_Comunication_Manger(&Local_Data,MESSAGE_0x13,MESSAGE_LENGTH_0x13);
 		}

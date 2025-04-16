@@ -11,7 +11,7 @@
 #include"Data_Structure.h"
 #include"DIO_config.h"
 #include"RTE.h"
-#include"Rte_Nvm_STD.h"
+
 #include"RTE_Com_ServiceHost.h"
 
 #include"object_Controller.h"
@@ -25,10 +25,10 @@ volatile Switch_t Switches[NUMBER_OF_RELAYS_INTERNAL_ON_CHIP];
 
 /*-------------------------------------------------------------------*/
 
-static volatile Idt_Rec003_FD02 Local_Relays_Status;
-static volatile Idt_Rec003_FD02 Local_Switches_Status;
-static u8 Struct_Status_Write_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 copy_Level);
-static u8 Struct_Status_Get_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 *Pointer_Value);
+static volatile u8 Local_Relays_Status[8];
+static volatile u8 Local_Switches_Status[8];
+static u8 Struct_Status_Write_Valus(u8 *Struct_Pointer,u16 copy_Bit_ID,u8 copy_Level);
+static u8 Struct_Status_Get_Valus(u8 *Struct_Pointer,u16 copy_Bit_ID,u8 *Pointer_Value);
 /*-------------------------------------------------------------------*/
 
 
@@ -144,7 +144,7 @@ u8 Relay_Initilaizations(u8 Object_ID_IN_Local_ECU,u8 Com_WIFI_ID,u8 Relay_Pin,u
 /**
  * WI-2006
  * Description : Runnable_Object_Time_Data_Update 
- * this function shall called each 10 ms and update timeoff for each object in system to report it to WIFI moudle 
+ * this function shall called each 10 ms and update timeoff for each object in system to report it to WIFI Module 
  * function call : periodic each 10 ms
 */
 
@@ -158,23 +158,23 @@ static void Runnable_Object_Time_Data_Update(void)
 
 	if(WIFI_MODE == System_Mode)
 	{
-		if(Read_Faild == Rte_Read_Message_0x15(&Local_Message))
+		
+		
+		Local_Message.Object_ID   = Relays[counter].Object_WIFI_ID;
+		Local_Message.Object_Data = Relays[counter].Timer_Referance_Mins;
+		Rte_Write_Message_0x15(&Local_Message);
+		counter ++;
+
+		if(counter == NUMBER_OF_RELAYS_INTERNAL_ON_CHIP)
 		{
-			Local_Message.Object_ID   = Relays[counter].Object_WIFI_ID;
-			Local_Message.Object_Data = Relays[counter].Timer_Referance_Mins;
-			Rte_Write_Message_0x15(&Local_Message);
-			counter ++;
-
-			if(counter == NUMBER_OF_RELAYS_INTERNAL_ON_CHIP)
-			{
-				counter = 0;
-			}
-			else
-			{
-
-			}
+			counter = 0;
+		}
+		else
+		{
 
 		}
+
+		
 
 	}
 
@@ -280,13 +280,13 @@ static void Runnable_Load_Nvm_Data(void)
 	*/
 
 
-	Idt_Rec003_FD02 Local_Relay_Struct;
-	Idt_Rec004_FD03 Local_Switch_Struct;
+	u8 Local_Relay_Struct[8];
+	u8 Local_Switch_Struct[8];
 	u8 Local_Relay_Status;
 	u8 Local_Switch_Status;
 	u8 Local_Current_Switch_Status;
 
-	if(Read_Done == Rte_Read_FD02(&Local_Relay_Struct) && Read_Done == Rte_Read_FD03(&Local_Switch_Struct))
+	if(E_OK == Rte_Read_FD02(&Local_Relay_Struct) && E_OK == Rte_Read_FD03(&Local_Switch_Struct))
 	{
 		for(u8 i=0 ; i < NUMBER_OF_RELAYS_INTERNAL_ON_CHIP ;i++)
 		{
@@ -514,7 +514,7 @@ static void Runnable_Object_Update_Relays_And_Switch_Status_10ms(void)
 
 }
 /*************************************************/
-static u8 Struct_Status_Write_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 copy_Level)
+static u8 Struct_Status_Write_Valus(u8 *Struct_Pointer,u16 copy_Bit_ID,u8 copy_Level)
 {
 	u8 Local_Return = 1;
 
@@ -523,7 +523,7 @@ static u8 Struct_Status_Write_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit
 
 	u8 *pointer; 	/*Local Pointer to access Struct in u8 size*/
 
-	pointer = &Struct_Pointer->Relay_status[0]; /*giving struct addresses*/
+	pointer = Struct_Pointer; /*giving struct addresses*/
 
 	if(byte_Section < LENGHT_STATUS_OBJECT_ON_SYSTEM*8)
 	{
@@ -551,7 +551,7 @@ static u8 Struct_Status_Write_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit
 
 }
 
-static u8 Struct_Status_Get_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_ID,u8 *Pointer_Value)
+static u8 Struct_Status_Get_Valus(u8 *Struct_Pointer,u16 copy_Bit_ID,u8 *Pointer_Value)
 {
 
 	u8 Local_Return = 1;
@@ -560,7 +560,7 @@ static u8 Struct_Status_Get_Valus(Idt_Rec003_FD02 *Struct_Pointer,u16 copy_Bit_I
 
 	u8 Local_Data ;
 	u8 *pointer;
-	pointer = &Struct_Pointer->Relay_status[0];
+	pointer = Struct_Pointer;
 
 	if(byte_Section < LENGHT_STATUS_OBJECT_ON_SYSTEM*8)
 	{

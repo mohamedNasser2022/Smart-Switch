@@ -17,6 +17,9 @@
         "mem_abstraction_private.h": "c",
         "memif_nvm_rec_struct.h": "c",
         "mem_abstraction_interface.h": "c",
-        "rte_nvm_std.h": "c"
+        "rte_nvm_std.h": "c",
+        "rte_memif_config_interface.h": "c",
+        "lib.h": "c",
+        "pin_mapping.h": "c"
     }
 }
