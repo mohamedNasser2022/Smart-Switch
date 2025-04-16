@@ -59,16 +59,8 @@ void EEPROM_Driver_Polling(void)
 void EEPROM_Driver_Time(void)
 {
 	EEPROM_Driver_Time_ms++;
-	
-	
 	EEPROM_Driver_Write_on_Physical();
 	EEPROM_Erasing_ALL();
-	
-
-
-
-
-
 }
 
 /*
@@ -107,10 +99,10 @@ u8 EEPROM_Driver_Write(u16 WordAddress,EEROM_Queue *Pointer_To_Queue)
 	u8 Local_Max_Size_Can_Stored_In_Current_Page = EEPROM_PAGE_SIZE - Local_Start_Byte_In_Page ;
 
 	EEROM_Queue Local_Queue_Data;
-	Queue3_Create(&Local_Queue_Data);
+	Queue5_Create(&Local_Queue_Data);
 
-	Queue3_Push(&Local_Queue_Data,WordAddress);
-	Queue3_Push(&Local_Queue_Data,(u8)(WordAddress >> 8));
+	Queue5_Push(&Local_Queue_Data,WordAddress);
+	Queue5_Push(&Local_Queue_Data,(u8)(WordAddress >> 8));
 
 
 	while(Queue5_Size(Pointer_To_Queue))

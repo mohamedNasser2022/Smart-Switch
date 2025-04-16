@@ -32,7 +32,7 @@ typedef struct {
 	Array_Of_Queue_3  Data_Queue_Send;
 	Array_Of_Queue_3  Data_Queue_Recived;
 	Nested_Queue_3    Queue_Of_Requests;
-	Function_Pointer  Function_Pointer;
+	Function_Pointer_t  Function_Pointer;
 
 
 }I2C_Struct_Buffer_Transmit;

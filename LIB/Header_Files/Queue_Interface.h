@@ -15,7 +15,7 @@ typedef Array_Of_Queue_2		Queue_Of_Message_Data_1;
 typedef Nested_Queue_2		Queue_Of_Message_Data_1_Nested;
 typedef Array_Of_Queue_3		Uart_Buffer;
 typedef Nested_Queue_3		Uart_Buffer_Nested;
-typedef Array_Of_Queue_4		Function_Pointer;
+typedef Array_Of_Queue_4		Function_Pointer_t;
 typedef Array_Of_Queue_5		EEPROM_Pages_Queue;
 typedef Nested_Queue_5		EEPROM_Pages_Queue_Nested;
 
